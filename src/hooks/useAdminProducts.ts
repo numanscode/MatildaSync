@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { fetchAdminProducts, saveAdminProduct, deleteAdminProduct as apiDeleteAdminProduct, getLocalDeletedProductIds } from '../lib/adminApi';
-import { getSupabase } from '../lib/supabaseClient';
+import { getSupabase, supabaseRowToProduct } from '../lib/supabaseClient';
 
 function withTimeout<T>(promise: PromiseLike<T> | Promise<T> | any, ms = 3000, fallbackVal: T): Promise<T> {
   return Promise.race([
@@ -46,12 +46,12 @@ export const useAdminProducts = () => {
         try {
           const client = getSupabase();
           const { data: sbProds, error: sbErr } = await withTimeout(
-            client.from('products').select('*'),
+            client.from('products').select('*').order('created_at', { ascending: false }),
             3000,
             { data: null, error: null } as any
           );
           if (!sbErr && Array.isArray(sbProds) && sbProds.length > 0) {
-            loadedProducts = sbProds;
+            loadedProducts = sbProds.map(supabaseRowToProduct).filter(Boolean);
           }
         } catch (sbErr) {
           console.warn('Supabase direct fetch notice:', sbErr);

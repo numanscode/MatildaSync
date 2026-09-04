@@ -44,6 +44,103 @@ export function getSupabase(): SupabaseClient {
 
 export const supabase = getSupabase();
 
+// --- Product Mapping Helpers between Supabase Schema and App Model ---
+export function productToSupabaseRow(p: any) {
+  if (!p) return null;
+  const additional = {
+    lifestyleImage: p.lifestyleImage || p.hover_image || p.hover_image_url || p.mainImage || '',
+    galleryImages: Array.isArray(p.galleryImages) ? p.galleryImages : [],
+    imageFit: p.imageFit || 'cover',
+    hasVictorianFrame: !!p.hasVictorianFrame,
+    material: p.material || ''
+  };
+
+  const totalVariantStock = Array.isArray(p.variants) 
+    ? p.variants.reduce((sum: number, v: any) => sum + (typeof v.stock === 'number' ? v.stock : (v.inStock ? 10 : 0)), 0)
+    : 0;
+
+  const stock_count = (p.stock_count !== undefined && p.stock_count !== null && Number(p.stock_count) >= 0)
+    ? Number(p.stock_count)
+    : (totalVariantStock || 10);
+
+  const rawTitle = p.title || p.name || 'Studio Piece';
+  const slug = p.slug || rawTitle.toLowerCase().replace(/[^a-z0-9]/g, '-') || p.id;
+
+  return {
+    id: p.id,
+    name: rawTitle,
+    slug: slug,
+    price: Number(p.price || 0),
+    original_price: p.original_price ? Number(p.original_price) : null,
+    description: p.description || '',
+    category: p.category || 'general',
+    collection: p.collection || 'women',
+    image_url: p.mainImage || p.image || p.image_url || '',
+    additional_images: additional,
+    variants: Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [{ id: 'v1', name: 'One Size', inStock: stock_count > 0, stock: stock_count }],
+    tags: Array.isArray(p.details) ? p.details : (Array.isArray(p.tags) ? p.tags : []),
+    stock_count: stock_count,
+    is_featured: !!(p.isFeatured ?? p.is_featured),
+    is_new_arrival: !!p.is_new_arrival,
+    is_best_seller: !!p.is_best_seller,
+    created_at: p.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function supabaseRowToProduct(row: any) {
+  if (!row) return null;
+  const addObj = (row.additional_images && typeof row.additional_images === 'object' && !Array.isArray(row.additional_images))
+    ? row.additional_images
+    : {};
+
+  const addArr = Array.isArray(row.additional_images) ? row.additional_images : [];
+
+  const rawVariants = Array.isArray(row.variants) && row.variants.length > 0 
+    ? row.variants 
+    : [{ id: 'v1', name: 'One Size', inStock: Number(row.stock_count || 0) > 0, stock: Number(row.stock_count || 0) }];
+
+  const variants = rawVariants.map((v: any, idx: number) => {
+    const stock = typeof v.stock === 'number'
+      ? v.stock
+      : (v.stock !== undefined ? Number(v.stock) || 0 : (v.inStock === false ? 0 : 10));
+    return {
+      id: v.id || `v_${idx + 1}`,
+      name: v.name || v.size || 'One Size',
+      stock,
+      inStock: typeof v.inStock === 'boolean' ? (stock > 0 && v.inStock) : stock > 0
+    };
+  });
+
+  const totalVariantStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+  const stock_count = (row.stock_count !== undefined && row.stock_count !== null && Number(row.stock_count) >= 0)
+    ? Number(row.stock_count)
+    : totalVariantStock;
+
+  return {
+    id: row.id,
+    slug: row.slug || row.id,
+    title: row.name || row.title || 'Studio Piece',
+    collection: row.collection || 'women',
+    category: row.category || 'general',
+    price: Number(row.price || 0),
+    original_price: row.original_price ? Number(row.original_price) : undefined,
+    stock_count,
+    description: row.description || '',
+    details: Array.isArray(row.tags) ? row.tags : (Array.isArray(row.details) ? row.details : []),
+    mainImage: row.image_url || row.mainImage || row.image || '',
+    lifestyleImage: addObj.lifestyleImage || (addArr.length > 0 ? addArr[0] : '') || row.image_url || row.mainImage || '',
+    galleryImages: addObj.galleryImages || (addArr.length > 1 ? addArr.slice(1) : addArr) || (Array.isArray(row.galleryImages) ? row.galleryImages : []),
+    imageFit: addObj.imageFit || row.imageFit || 'cover',
+    hasVictorianFrame: addObj.hasVictorianFrame ?? !!row.hasVictorianFrame,
+    material: addObj.material || row.material || '',
+    variants,
+    isFeatured: !!(row.is_featured ?? row.isFeatured),
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  };
+}
+
 // Local storage key for offline resilient orders
 const LOCAL_STORAGE_KEY = 'matilda_local_orders';
 

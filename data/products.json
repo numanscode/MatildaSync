@@ -1,66 +1,31 @@
 [
   {
-    "id": "golden-hoops-",
-    "slug": "golden-hoops-",
-    "title": "golden hoops",
-    "collection": "women",
-    "category": "hoops",
-    "price": 89,
-    "description": "chic gold hoops that bring subtle elegance to any daily outfit",
-    "details": [
-      "dangling ",
-      "shiny finish ",
-      "secure back "
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736389504-i3kxkf.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736403520-rdgvp.jpeg",
+    "id": "test",
+    "slug": "probe",
+    "title": "Probe",
+    "collection": "all",
+    "category": "general",
+    "price": 0,
+    "stock_count": 0,
+    "description": "",
+    "details": [],
+    "mainImage": "",
+    "lifestyleImage": "",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "",
     "variants": [
       {
         "id": "v1",
-        "name": "free size",
+        "name": "One Size",
         "stock": 0,
         "inStock": false
       }
     ],
-    "stock_count": 0,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "Golden bakelite",
-    "created_at": "2026-08-14 19:41:15.713085+00",
-    "updated_at": "2026-08-14 19:41:15.713085+00"
-  },
-  {
-    "id": "golden-pearl-bow-studs-",
-    "slug": "golden-pearl-bow-studs-",
-    "title": "twisted golden pearl bow studs",
-    "collection": "women",
-    "category": "studs",
-    "price": 89,
-    "description": "shiny golden studs with a pearl oriented look",
-    "details": [
-      "shiny golden look",
-      "goes with every fit"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736774042-83tpnl.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736784730-r447go.jpeg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "free size",
-        "stock": 1,
-        "inStock": true
-      }
-    ],
-    "stock_count": 1,
-    "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-14 19:47:27.603698+00",
-    "updated_at": "2026-08-14 19:47:27.603698+00"
+    "created_at": "2026-09-04T16:59:58.552362+00:00",
+    "updated_at": "2026-09-04T16:59:58.552362+00:00"
   },
   {
     "id": "golden-starfish-studs-",
@@ -69,6 +34,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 2,
     "description": "Radiant gold studs designed for sunny beach getaways",
     "details": [
       "starfish look",
@@ -78,6 +44,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736214163-io7ofh.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "Golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -86,12 +54,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "Golden bakelite",
-    "created_at": "2026-08-14 19:36:57.494723+00",
-    "updated_at": "2026-08-14 19:36:57.494723+00"
+    "created_at": "2026-08-14T19:36:57.494723+00:00",
+    "updated_at": "2026-08-14T19:36:57.494723+00:00"
   },
   {
     "id": "golden-studs-",
@@ -100,6 +65,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 3,
     "description": "these golden Bakelite studs effortlessly blend timeless retro charm with a sleek, modern finish. Lightweight, durable, and uniquely polished, they are the perfect statement piece for both casual day",
     "details": [
       "coral look",
@@ -109,6 +75,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736635071-blh6ua.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -117,12 +85,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 3,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-14 19:43:58.634749+00",
-    "updated_at": "2026-08-14 19:43:58.634749+00"
+    "created_at": "2026-08-14T19:43:58.634749+00:00",
+    "updated_at": "2026-08-14T19:43:58.634749+00:00"
   },
   {
     "id": "matilda-msrmjhy8",
@@ -131,6 +96,7 @@
     "collection": "women",
     "category": "waist-chains",
     "price": 199,
+    "stock_count": 6,
     "description": "a statement golden waist chain featuring detailed medallion links. Fully adjustable from XXS to XXL to sit comfortably and securely on your waist.",
     "details": [
       "adjustable fit from XXS to XXL",
@@ -141,6 +107,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/bslpbpxqf3h.jpg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "gold toned metal",
     "variants": [
       {
         "id": "v2",
@@ -149,12 +117,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 6,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "gold toned metal",
-    "created_at": "2026-08-14 13:24:47.292518+00",
-    "updated_at": "2026-08-14 13:24:47.292518+00"
+    "created_at": "2026-08-14T13:24:47.292518+00:00",
+    "updated_at": "2026-08-14T13:24:47.292518+00:00"
   },
   {
     "id": "prod_1786822207499",
@@ -163,6 +128,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 99,
+    "stock_count": 0,
     "description": "A bold statement necklace designed with a detachable black cord provides remarkable flexibility, letting you switch seamlessly from a dramatic, high-fashion collar style to a relaxed, everyday aesthetic.",
     "details": [
       "glassy heart look",
@@ -174,6 +140,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786821961700_ia0wt5t2zdf.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "glass and cord",
     "variants": [
       {
         "id": "v1",
@@ -182,12 +150,9 @@
         "inStock": false
       }
     ],
-    "stock_count": 0,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "glass and cord",
-    "created_at": "2026-08-15 19:30:09.369517+00",
-    "updated_at": "2026-08-15 19:30:09.369517+00"
+    "created_at": "2026-08-15T19:30:09.369517+00:00",
+    "updated_at": "2026-08-15T19:30:09.369517+00:00"
   },
   {
     "id": "prod_1786824810310",
@@ -196,6 +161,7 @@
     "collection": "both",
     "category": "pendants",
     "price": 159,
+    "stock_count": 8,
     "description": "a maple leaf pendant paired with a detachable chain combines autumnal elegance with modern versatility, allowing you to easily shift from an earthy, casual daytime aesthetic to a striking, nature-inspired evening look.",
     "details": [
       "stainless steel",
@@ -206,6 +172,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786824199692_cdlvithq6bc.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -214,12 +182,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 8,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-15 20:13:32.909076+00",
-    "updated_at": "2026-08-15 20:13:32.909076+00"
+    "created_at": "2026-08-15T20:13:32.909076+00:00",
+    "updated_at": "2026-08-15T20:13:32.909076+00:00"
   },
   {
     "id": "prod_1786825127272",
@@ -228,6 +193,7 @@
     "collection": "both",
     "category": "pendants",
     "price": 169,
+    "stock_count": 14,
     "description": "a bold steel sunburst pendant paired with a detachable chain merges industrial edge with celestial warmth, giving you a striking accessory that transitions effortlessly from everyday streetwear to statement evening wear.",
     "details": [
       "celestial design",
@@ -238,6 +204,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786824932779_4kxudu01zbr.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "Stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -246,12 +214,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 14,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "Stainless steel",
-    "created_at": "2026-08-15 20:18:48.942314+00",
-    "updated_at": "2026-08-15 20:18:48.942314+00"
+    "created_at": "2026-08-15T20:18:48.942314+00:00",
+    "updated_at": "2026-08-15T20:18:48.942314+00:00"
   },
   {
     "id": "prod_1786825557123",
@@ -260,6 +225,7 @@
     "collection": "both",
     "category": "pendants",
     "price": 169,
+    "stock_count": 2,
     "description": "a striking spider pendant paired with a detachable \nsilver chain offers the ultimate gothic-chic or edgy modern versatility, letting you completely transform the vibe of the piece from dark romance to sleek industrial edge.",
     "details": [
       "spiderman-esque",
@@ -270,6 +236,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786825210473_wq03wardwyi.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -278,12 +246,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-15 20:25:59.454827+00",
-    "updated_at": "2026-08-15 20:25:59.454827+00"
+    "created_at": "2026-08-15T20:25:59.454827+00:00",
+    "updated_at": "2026-08-15T20:25:59.454827+00:00"
   },
   {
     "id": "prod_1786826607562",
@@ -292,6 +257,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 169,
+    "stock_count": 4,
     "description": "A gothic butterfly pendant paired with a detachable silver chain creates a striking balance between dark romance and ethereal grunge, offering versatile styling options that range from Victorian mourning-style elegance to modern alternative fashion.",
     "details": [
       "dark aesthetic style",
@@ -302,6 +268,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786825994111_ayrnq1prtsh.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "steel",
     "variants": [
       {
         "id": "v1",
@@ -310,12 +278,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 4,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "steel",
-    "created_at": "2026-08-15 20:43:29.614643+00",
-    "updated_at": "2026-08-15 20:43:29.614643+00"
+    "created_at": "2026-08-15T20:43:29.614643+00:00",
+    "updated_at": "2026-08-15T20:43:29.614643+00:00"
   },
   {
     "id": "prod_1786827794259",
@@ -324,6 +289,7 @@
     "collection": "both",
     "category": "pendants",
     "price": 169,
+    "stock_count": 1,
     "description": "A stunning silver feather pendant paired with a chain brings a touch of organic elegance and bohemian free-spiritedness to your everyday look. Whether crafted from polished sterling silver or detailed pewter, the intricate texturing of the feather mimics the natural flow of real plumage, making it a timeless and lightweight accessory.",
     "details": [
       "Sterling silver ",
@@ -333,6 +299,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786827348025_q7n1eh6jnz9.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "steel",
     "variants": [
       {
         "id": "v1",
@@ -341,12 +309,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 1,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "steel",
-    "created_at": "2026-08-15 21:03:16.332305+00",
-    "updated_at": "2026-08-15 21:03:16.332305+00"
+    "created_at": "2026-08-15T21:03:16.332305+00:00",
+    "updated_at": "2026-08-15T21:03:16.332305+00:00"
   },
   {
     "id": "prod_1786828141597",
@@ -355,6 +320,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 169,
+    "stock_count": 1,
     "description": "A dripping butterfly pendant merges delicate wing symmetry with an edgy, avant-garde melting effect, creating a striking piece that is equal parts whimsical and subversive.",
     "details": [
       "Melting Silhouette",
@@ -365,6 +331,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786827849651_vk62194bs6.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "Steel",
     "variants": [
       {
         "id": "v1",
@@ -373,12 +341,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 1,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "Steel",
-    "created_at": "2026-08-15 21:09:03.358906+00",
-    "updated_at": "2026-08-15 21:09:03.358906+00"
+    "created_at": "2026-08-15T21:09:03.358906+00:00",
+    "updated_at": "2026-08-15T21:09:03.358906+00:00"
   },
   {
     "id": "prod_1786828593893",
@@ -387,6 +352,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 169,
+    "stock_count": 8,
     "description": "A textured starfish pendant captures the organic, sun-washed beauty of the ocean, offering a coastal-inspired statement piece with rich tactile depth and intricate detail.",
     "details": [
       "Dimensional Shape",
@@ -397,6 +363,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828255751_wjfko879xjd.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -405,12 +373,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 8,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-15 21:16:35.337793+00",
-    "updated_at": "2026-08-15 21:16:35.337793+00"
+    "created_at": "2026-08-15T21:16:35.337793+00:00",
+    "updated_at": "2026-08-15T21:16:35.337793+00:00"
   },
   {
     "id": "prod_1786828872628",
@@ -419,6 +384,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 159,
+    "stock_count": 6,
     "description": "A mini butterfly pendant offers a delicate, understated take on classic winged motifs, combining dainty proportions with graceful symmetry for a subtle everyday accessory.",
     "details": [
       "Dainty Scale",
@@ -429,6 +395,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828668607_alqs9t3a6m.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -437,12 +405,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 6,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-15 21:21:14.240638+00",
-    "updated_at": "2026-08-15 21:21:14.240638+00"
+    "created_at": "2026-08-15T21:21:14.240638+00:00",
+    "updated_at": "2026-08-15T21:21:14.240638+00:00"
   },
   {
     "id": "prod_1786829102146",
@@ -451,6 +416,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 269,
+    "stock_count": 0,
     "description": "a golden high-quality sunburst pendant captures the radiant warmth and timeless elegance of celestial design, meticulously crafted from premium precious metals to deliver a luminous, eye-catching statement piece.",
     "details": [
       "high-purity material",
@@ -461,6 +427,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828929799_5c0v3t8vrhc.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -469,12 +437,9 @@
         "inStock": false
       }
     ],
-    "stock_count": 0,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-15 21:25:03.210324+00",
-    "updated_at": "2026-08-15 21:25:03.210324+00"
+    "created_at": "2026-08-15T21:25:03.210324+00:00",
+    "updated_at": "2026-08-15T21:25:03.210324+00:00"
   },
   {
     "id": "prod_1786829392708",
@@ -483,6 +448,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 179,
+    "stock_count": 21,
     "description": "a real resin flower pendant encases hand-picked botanical elements in crystal-clear resin, capturing a fleeting moment of nature in a durable, wearable work of art.",
     "details": [
       "Botanical Preservation",
@@ -493,6 +459,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786829255527_ppauyowaez.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -501,12 +469,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 21,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-15 21:29:53.786455+00",
-    "updated_at": "2026-08-15 21:29:53.786455+00"
+    "created_at": "2026-08-15T21:29:53.786455+00:00",
+    "updated_at": "2026-08-15T21:29:53.786455+00:00"
   },
   {
     "id": "prod_1786829635659",
@@ -515,6 +480,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 179,
+    "stock_count": 2,
     "description": "a golden huge gothic butterfly pendant merges dramatic, oversized proportions with dark alternative styling, using warm metallic tones to elevate intricate macabre details into a high-impact statement piece.",
     "details": [
       "oversized statement scale",
@@ -525,6 +491,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786829436244_o9qoexjaprg.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -533,12 +501,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-15 21:33:56.705561+00",
-    "updated_at": "2026-08-15 21:33:56.705561+00"
+    "created_at": "2026-08-15T21:33:56.705561+00:00",
+    "updated_at": "2026-08-15T21:33:56.705561+00:00"
   },
   {
     "id": "prod_1786829856528",
@@ -547,6 +512,7 @@
     "collection": "both",
     "category": "pendants",
     "price": 169,
+    "stock_count": 5,
     "description": "A star gothic pendant combines celestial symmetry with dark, edgy aesthetics, featuring sharp geometric lines and moody metallic finishes for an unmistakable alternative statement.",
     "details": [
       "Sharp Geometric Star Motif",
@@ -557,6 +523,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786829711730_pr9p3b6bkj.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "Stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -565,12 +533,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 5,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "Stainless steel",
-    "created_at": "2026-08-15 21:37:37.746719+00",
-    "updated_at": "2026-08-15 21:37:37.746719+00"
+    "created_at": "2026-08-15T21:37:37.746719+00:00",
+    "updated_at": "2026-08-15T21:37:37.746719+00:00"
   },
   {
     "id": "prod_1786869157046",
@@ -579,6 +544,7 @@
     "collection": "women",
     "category": "waist-chains",
     "price": 199,
+    "stock_count": 6,
     "description": "A silver waist chain—often traditionally known as a kamarbandh, tagdi, or belly chain—is a graceful and versatile piece of ornamental jewelry designed to rest delicately around the hips or waist. Seamlessly blending rich cultural heritage with modern minimalist charm, it accentuates the natural curves of the body and adds a subtle, sophisticated shimmer to any outfit. Whether styled traditionally with a classic silk saree and festive lehenga or paired contemporary-style with western high-waisted garments and dresses, a high-quality silver waist chain offers an effortless statement of elegance and poise.",
     "details": [
       "versatile fit with adjustable links or extension chain",
@@ -592,6 +558,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786868917084_ekcljkgozj8.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "High quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -600,12 +568,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 6,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "High quality stainless steel",
-    "created_at": "2026-08-16 08:32:39.233873+00",
-    "updated_at": "2026-08-16 08:32:39.233873+00"
+    "created_at": "2026-08-16T08:32:39.233873+00:00",
+    "updated_at": "2026-08-16T08:32:39.233873+00:00"
   },
   {
     "id": "prod_1786869482686",
@@ -614,6 +579,7 @@
     "collection": "women",
     "category": "bracelets",
     "price": 199,
+    "stock_count": 10,
     "description": "a clover leaf bracelet is a charming and delicate piece of jewelry featuring distinct four-leaf clover motifs. Designed to drape gracefully around the wrist, it effortlessly combines playful elegance with sophisticated style. Whether crafted as a minimalist metal chain or accented with polished inlays, it adds a refined and stylish touch of grace to both casual daytime looks and formal evening attire.",
     "details": [
       "premium metal construction",
@@ -624,6 +590,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786869479850_3bfpamjx4pq.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "High quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -632,12 +600,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 10,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "High quality stainless steel",
-    "created_at": "2026-08-16 08:38:03.534279+00",
-    "updated_at": "2026-08-16 08:38:03.534279+00"
+    "created_at": "2026-08-16T08:38:03.534279+00:00",
+    "updated_at": "2026-08-16T08:38:03.534279+00:00"
   },
   {
     "id": "prod_1786870172722",
@@ -646,6 +611,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 159,
+    "stock_count": 15,
     "description": "A keepsake heart pendant is a sentimental and timeless piece of jewelry designed to hold personal memories close to your heart. Featuring a classic heart shape, it often serves as a locket or a memorial piece where you can securely store a tiny photo, a small note, or a meaningful token. Combining profound emotional value with graceful craftsmanship, it makes a deeply personal accessory or a treasured gift for someone special.",
     "details": [
       "Opening locket or compartment for personal mementos",
@@ -658,6 +624,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786869776960_q9m91ysbi6d.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -666,12 +634,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 15,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-16 08:49:34.104166+00",
-    "updated_at": "2026-08-16 08:49:34.104166+00"
+    "created_at": "2026-08-16T08:49:34.104166+00:00",
+    "updated_at": "2026-08-16T08:49:34.104166+00:00"
   },
   {
     "id": "prod_1786870408005",
@@ -680,6 +645,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 2,
     "description": "Maple leaf earrings are a charming and nature-inspired jewelry piece featuring the iconic, intricately detailed silhouette of a maple leaf. Capturing the rustic beauty of autumn, they add a warm, organic touch to any outfit, making them a stylish choice for everyday wear or seasonal accessorizing.",
     "details": [
       "lightweight and comfortable for all-day wear",
@@ -690,6 +656,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786870282190_ui8msuhjo3.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -698,12 +666,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-16 08:53:29.094346+00",
-    "updated_at": "2026-08-16 08:53:29.094346+00"
+    "created_at": "2026-08-16T08:53:29.094346+00:00",
+    "updated_at": "2026-08-16T08:53:29.094346+00:00"
   },
   {
     "id": "prod_1786870590568",
@@ -712,6 +677,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 12,
     "description": "Golden bow studs are charming and delicate earrings shaped like graceful tied ribbons. Bringing a touch of feminine elegance and playful vintage charm to your look, these polished gold studs add a sweet, sophisticated sparkle to both casual everyday outfits and dressy attire.",
     "details": [
       "elegant tied ribbon bow silhouette",
@@ -722,6 +688,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786870446893_my35gm6kowh.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -730,12 +698,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 12,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-16 08:56:31.093688+00",
-    "updated_at": "2026-08-16 08:56:31.093688+00"
+    "created_at": "2026-08-16T08:56:31.093688+00:00",
+    "updated_at": "2026-08-16T08:56:31.093688+00:00"
   },
   {
     "id": "prod_1786870759558",
@@ -744,6 +709,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 23,
     "description": "golden textured starfish studs are delightful, ocean-inspired earrings featuring intricately detailed starfish motifs. With a warm golden finish and a tactile, sun-kissed surface, these playful studs bring a touch of coastal elegance and summery charm to your everyday wardrobe.",
     "details": [
       "intricate textured starfish design",
@@ -754,6 +720,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786870620273_ijdqm19z6oe.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -762,12 +730,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 23,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-16 08:59:21.000353+00",
-    "updated_at": "2026-08-16 08:59:21.000353+00"
+    "created_at": "2026-08-16T08:59:21.000353+00:00",
+    "updated_at": "2026-08-16T08:59:21.000353+00:00"
   },
   {
     "id": "prod_1786871517252",
@@ -776,6 +741,7 @@
     "collection": "both",
     "category": "bracelets",
     "price": 169,
+    "stock_count": 10,
     "description": "crafted from genuine, high-grade sterling silver, this bracelet features intricate cross-motif links designed with meticulous hand-crafted detail. It serves as a timeless and versatile accessory that seamlessly complements both casual everyday wear and formal attire, whether worn alone as a statement piece or paired with other favorites.",
     "details": [
       "authentic sterling silver",
@@ -788,6 +754,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786871203210_q7mn9qhz5cl.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -796,12 +764,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 10,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-16 09:11:58.928561+00",
-    "updated_at": "2026-08-16 09:11:58.928561+00"
+    "created_at": "2026-08-16T09:11:58.928561+00:00",
+    "updated_at": "2026-08-16T09:11:58.928561+00:00"
   },
   {
     "id": "prod_1786873314488",
@@ -810,6 +775,7 @@
     "collection": "both",
     "category": "nose-rings",
     "price": 29,
+    "stock_count": 25,
     "description": "designed for effortless wear without the need for actual piercings, these clip-on pieces offer a comfortable and secure hold for all-day use. Featuring a sleek and modern aesthetic, they can be worn flexibly on both the ear and nose to add a chic, edgy accent to any outfit.",
     "details": [
       "no Piercing Required",
@@ -822,6 +788,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873150944_evlwttn52fj.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -836,12 +804,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 25,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-16 09:41:56.54187+00",
-    "updated_at": "2026-08-16 09:41:56.54187+00"
+    "created_at": "2026-08-16T09:41:56.54187+00:00",
+    "updated_at": "2026-08-16T09:41:56.54187+00:00"
   },
   {
     "id": "prod_1786873702719",
@@ -850,6 +815,7 @@
     "collection": "women",
     "category": "bracelets",
     "price": 259,
+    "stock_count": 10,
     "description": "Crafted with delicate precision, this stunning tulip bracelet features an exquisite floral-inspired design that brings a touch of timeless botanical elegance to your wrist. Its polished finish and graceful structure make it an effortless accessory, perfectly suited for adding a sophisticated, charming flair to both your everyday outfits and special occasion wear.",
     "details": [
       "premium Polish",
@@ -860,6 +826,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873545491_rzx06254g7.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -868,12 +836,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 10,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-16 09:48:24.151478+00",
-    "updated_at": "2026-08-16 09:48:24.151478+00"
+    "created_at": "2026-08-16T09:48:24.151478+00:00",
+    "updated_at": "2026-08-16T09:48:24.151478+00:00"
   },
   {
     "id": "prod_1786873979197",
@@ -882,6 +847,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 19,
     "description": "Crafted with a charming and romantic aesthetic, these heart-shaped stud earrings offer a delicate touch of elegance for any occasion. Their lovely design provides a subtle yet sophisticated sparkle, making them a versatile and timeless addition to your everyday jewelry collection.",
     "details": [
       "Subtle and sophisticated sparkle",
@@ -892,6 +858,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873831162_7utdw7yzr4m.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -900,12 +868,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 19,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-16 09:53:00.502365+00",
-    "updated_at": "2026-08-16 09:53:00.502365+00"
+    "created_at": "2026-08-16T09:53:00.502365+00:00",
+    "updated_at": "2026-08-16T09:53:00.502365+00:00"
   },
   {
     "id": "prod_1786874264285",
@@ -914,6 +879,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 2,
     "description": "Crafted with a charming and romantic aesthetic, these heart-shaped stud earrings offer a delicate touch of elegance for any occasion. Their lovely design provides a subtle yet sophisticated sparkle, making them a versatile and timeless addition to your everyday jewelry collection.",
     "details": [
       "Delicate heart-shaped design",
@@ -924,6 +890,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786874011892_uiyuf2r2t5p.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -932,12 +900,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-16 09:57:45.902819+00",
-    "updated_at": "2026-08-16 09:57:45.902819+00"
+    "created_at": "2026-08-16T09:57:45.902819+00:00",
+    "updated_at": "2026-08-16T09:57:45.902819+00:00"
   },
   {
     "id": "prod_1786875270181",
@@ -946,6 +911,7 @@
     "collection": "women",
     "category": "bangles",
     "price": 229,
+    "stock_count": 3,
     "description": "featuring a bold statement silhouette, these broad bangles showcase vibrant hand-painted artistry that highlights stunning artisanal elegance. Enhanced by a glossy enamel finish and a rich color palette, they offer a striking and unique addition to any accessory collection.",
     "details": [
       "vibrant Hand-Painted Artistry",
@@ -956,6 +922,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786875014109_sj5q52jyzfm.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality metal",
     "variants": [
       {
         "id": "v1",
@@ -994,12 +962,9 @@
         "inStock": false
       }
     ],
-    "stock_count": 3,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality metal",
-    "created_at": "2026-08-16 10:14:31.48123+00",
-    "updated_at": "2026-08-16 10:14:31.48123+00"
+    "created_at": "2026-08-16T10:14:31.48123+00:00",
+    "updated_at": "2026-08-16T10:14:31.48123+00:00"
   },
   {
     "id": "prod_1786885325276",
@@ -1008,6 +973,7 @@
     "collection": "women",
     "category": "bangles",
     "price": 199,
+    "stock_count": 11,
     "description": "Redefine minimalist elegance with our collection of slim enamel bangles. Featuring a delicate, ultra-thin profile, these bangles offer a modern take on classic wristwear, designed to bring a refined touch of color and sophistication to any ensemble.",
     "details": [
       "Hand painted ",
@@ -1018,6 +984,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786884365575_m8rnutqzxd.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality metal",
     "variants": [
       {
         "id": "v1",
@@ -1056,12 +1024,9 @@
         "inStock": false
       }
     ],
-    "stock_count": 11,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality metal",
-    "created_at": "2026-08-16 13:02:07.830148+00",
-    "updated_at": "2026-08-16 13:02:07.830148+00"
+    "created_at": "2026-08-16T13:02:07.830148+00:00",
+    "updated_at": "2026-08-16T13:02:07.830148+00:00"
   },
   {
     "id": "prod_1786885818729",
@@ -1070,6 +1035,7 @@
     "collection": "women",
     "category": "cuffs",
     "price": 189,
+    "stock_count": 2,
     "description": "Make a bold yet graceful statement with our Golden Spiral Cuff. Inspired by the organic shapes found in nature, this striking piece wraps fluidly around the wrist, combining sculptural artistry with timeless metallic shine.",
     "details": [
       "durable & Lightweight",
@@ -1080,6 +1046,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786885657867_i9klazgfy1.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
     "variants": [
       {
         "id": "v1",
@@ -1088,12 +1056,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "created_at": "2026-08-16 13:10:19.534122+00",
-    "updated_at": "2026-08-16 13:10:19.534122+00"
+    "created_at": "2026-08-16T13:10:19.534122+00:00",
+    "updated_at": "2026-08-16T13:10:19.534122+00:00"
   },
   {
     "id": "prod_1786886190359",
@@ -1102,6 +1067,7 @@
     "collection": "women",
     "category": "cuffs",
     "price": 139,
+    "stock_count": 1,
     "description": "Elevate your accessory game with our Classic Arm Cuff, a bold and sophisticated statement piece designed to celebrate ancient artistry with a modern edge. Perfect for warm-weather styling, festivals, or adding a dramatic flair to evening wear, this sleek band sits gracefully on the upper arm or forearm for an unforgettable look.",
     "details": [
       "sleek & Minimalist Design",
@@ -1112,6 +1078,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786886025724_cntddokg7fo.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1120,12 +1088,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 1,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-16 13:16:31.769804+00",
-    "updated_at": "2026-08-16 13:16:31.769804+00"
+    "created_at": "2026-08-16T13:16:31.769804+00:00",
+    "updated_at": "2026-08-16T13:16:31.769804+00:00"
   },
   {
     "id": "prod_1786886695694",
@@ -1134,6 +1099,7 @@
     "collection": "women",
     "category": "cuffs",
     "price": 139,
+    "stock_count": 1,
     "description": "Bring the effortless, organic beauty of the ocean to your style with our Golden Sea Snail Arm Cuff. Inspired by the mesmerizing, natural geometry of marine shells, this sculptural statement piece wraps fluidly around the arm for a look that is both whimsical and deeply sophisticated.",
     "details": [
       "Nautilus & Snail-Inspired Silhouette",
@@ -1144,6 +1110,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786886503444_n998efr47oa.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1152,12 +1120,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 1,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-16 13:24:56.981304+00",
-    "updated_at": "2026-08-16 13:24:56.981304+00"
+    "created_at": "2026-08-16T13:24:56.981304+00:00",
+    "updated_at": "2026-08-16T13:24:56.981304+00:00"
   },
   {
     "id": "prod_1786886938514",
@@ -1166,6 +1131,7 @@
     "collection": "women",
     "category": "cuffs",
     "price": 139,
+    "stock_count": 1,
     "description": "embrace romantic elegance and natural beauty with our Floral Arm Cuff. Featuring delicate, blooming motifs intricately sculpted along a graceful band, this enchanting piece brings a touch of whimsical, garden-inspired charm to your wardrobe.",
     "details": [
       "flexible Open-Ended Fit",
@@ -1176,6 +1142,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786886878901_rfkqrbrixvg.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1184,12 +1152,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 1,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-16 13:28:59.599902+00",
-    "updated_at": "2026-08-16 13:28:59.599902+00"
+    "created_at": "2026-08-16T13:28:59.599902+00:00",
+    "updated_at": "2026-08-16T13:28:59.599902+00:00"
   },
   {
     "id": "prod_1786887190227",
@@ -1198,6 +1163,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 159,
+    "stock_count": 5,
     "description": "Capture the essence of timeless femininity with our Silver Bow Pendant. This charming piece balances classic elegance with a subtle, modern playfulness, making it the perfect finishing touch for both casual everyday wear and special occasions.",
     "details": [
       "Intricate Bow Design",
@@ -1208,6 +1174,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786887015638_hikqloup4wh.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1216,12 +1184,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 5,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-16 13:33:10.957896+00",
-    "updated_at": "2026-08-16 13:33:10.957896+00"
+    "created_at": "2026-08-16T13:33:10.957896+00:00",
+    "updated_at": "2026-08-16T13:33:10.957896+00:00"
   },
   {
     "id": "prod_1786887801974",
@@ -1230,6 +1195,7 @@
     "collection": "women",
     "category": "anklets",
     "price": 129,
+    "stock_count": 2,
     "description": "adorn your ankles with the timeless, shimmering beauty of our Silver Anklets. Whether you are looking for a minimalist everyday chain or a more intricate, embellished design, these pieces are crafted to add a graceful, melodic touch to every step you take.",
     "details": [
       "premium quality",
@@ -1242,6 +1208,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786887611204_h9t2ssv5drj.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1250,12 +1218,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 2,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "created_at": "2026-08-16 13:43:23.172238+00",
-    "updated_at": "2026-08-16 13:43:23.172238+00"
+    "created_at": "2026-08-16T13:43:23.172238+00:00",
+    "updated_at": "2026-08-16T13:43:23.172238+00:00"
   },
   {
     "id": "prod_1786888756680",
@@ -1264,6 +1229,7 @@
     "collection": "women",
     "category": "nose-rings",
     "price": 39,
+    "stock_count": 22,
     "description": "celebrate rich cultural heritage and timeless elegance with our exquisite collection of Marathi Nose Rings. Known traditionally as the Nath, this iconic piece of Maharashtrian bridal and festive jewelry is celebrated for its distinctive, eye-catching cashew shape and luxurious detailing.",
     "details": [
       "ornate Embellishments",
@@ -1274,6 +1240,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786888376810_nuh2nhxmoci.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1408,12 +1376,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 22,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-16 13:59:18.453834+00",
-    "updated_at": "2026-08-16 13:59:18.453834+00"
+    "created_at": "2026-08-16T13:59:18.453834+00:00",
+    "updated_at": "2026-08-16T13:59:18.453834+00:00"
   },
   {
     "id": "prod_1786889479069",
@@ -1422,6 +1387,7 @@
     "collection": "women",
     "category": "pendants",
     "price": 189,
+    "stock_count": 1,
     "description": "Keep your most cherished memories close to your heart with our Keepsake Heart Pendant. More than just a piece of jewelry, this elegant design is crafted to hold a small, meaningful memento—such as a tiny photograph, a lock of hair, or a delicate dried flower—serving as a timeless tribute to the people or moments you hold dear.",
     "details": [
       "functional Keepsake Design",
@@ -1434,6 +1400,8 @@
       "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786889366894_y2jt31pjk1c.jpeg"
     ],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
     "variants": [
       {
         "id": "v1",
@@ -1442,12 +1410,9 @@
         "inStock": true
       }
     ],
-    "stock_count": 1,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "created_at": "2026-08-16 14:11:20.53459+00",
-    "updated_at": "2026-08-16 14:11:20.53459+00"
+    "created_at": "2026-08-16T14:11:20.53459+00:00",
+    "updated_at": "2026-08-16T14:11:20.53459+00:00"
   },
   {
     "id": "prod_1786889669275",
@@ -1456,6 +1421,7 @@
     "collection": "women",
     "category": "studs",
     "price": 89,
+    "stock_count": 0,
     "description": "Bring the crisp, natural beauty of autumn to your everyday style with our Silver Maple Leaf Earrings. Inspired by the intricate, iconic geometry of falling foliage, these graceful earrings offer a delicate blend of rustic charm and modern sophistication.",
     "details": [
       "Brilliant Sterling Silver Finish",
@@ -1466,6 +1432,8 @@
     "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786889540139_f14v7z57u3d.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "silver bakelite",
     "variants": [
       {
         "id": "v1",
@@ -1474,11 +1442,8 @@
         "inStock": false
       }
     ],
-    "stock_count": 0,
     "isFeatured": false,
-    "hasVictorianFrame": false,
-    "material": "silver bakelite",
-    "created_at": "2026-08-16 14:14:30.35307+00",
-    "updated_at": "2026-08-16 14:14:30.35307+00"
+    "created_at": "2026-08-16T14:14:30.35307+00:00",
+    "updated_at": "2026-08-16T14:14:30.35307+00:00"
   }
 ]

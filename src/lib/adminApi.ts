@@ -1,4 +1,4 @@
-import { getSupabase, syncUnsyncedOrders } from './supabaseClient';
+import { getSupabase, syncUnsyncedOrders, productToSupabaseRow, supabaseRowToProduct } from './supabaseClient';
 import { broadcastSync } from './syncChannel';
 
 function withTimeout<T>(promise: Promise<T>, ms = 3000, fallbackVal: T): Promise<T> {
@@ -264,7 +264,7 @@ export async function fetchPublicProducts(collectionName?: string, category?: st
     const res = await withTimeout(fetch(`/api/products${queryString}`, { cache: 'no-store' }), 3500, null as any);
     if (res && res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         return data.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
       }
     }
@@ -284,8 +284,9 @@ export async function fetchPublicProducts(collectionName?: string, category?: st
     }
 
     const { data: sbProds, error } = await queryBuilder;
-    if (!error && Array.isArray(sbProds)) {
-      return sbProds.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+    if (!error && Array.isArray(sbProds) && sbProds.length > 0) {
+      const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
+      return mapped.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
     }
   } catch (sbErr) {
     console.warn('Supabase public products fetch notice:', sbErr);
@@ -305,12 +306,24 @@ export async function fetchAdminProducts(): Promise<any[]> {
     }), 3500, null as any);
     if (res && res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         return data.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
       }
     }
   } catch (e) {
     console.warn('API products fetch notice:', e);
+  }
+
+  // Direct Supabase fallback for Admin
+  try {
+    const client = getSupabase();
+    const { data: sbProds, error } = await client.from('products').select('*').order('created_at', { ascending: false });
+    if (!error && Array.isArray(sbProds) && sbProds.length > 0) {
+      const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
+      return mapped.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+    }
+  } catch (sbErr) {
+    console.warn('Supabase admin products fetch notice:', sbErr);
   }
 
   return fetchPublicProducts();
@@ -322,6 +335,9 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
   const url = isEdit ? `/api/admin/products/${encodeURIComponent(prod.id)}` : '/api/admin/products';
   const method = isEdit ? 'PUT' : 'POST';
 
+  let savedProd: any = null;
+
+  // 1. Try Express API
   try {
     const res = await withTimeout(fetch(url, {
       method,
@@ -330,26 +346,30 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
       body: JSON.stringify(prod)
     }), 3500, null as any);
     if (res && res.ok) {
-      const saved = await res.json();
-      if (saved) {
-        broadcastSync({ type: 'CATALOGUE_UPDATED', timestamp: Date.now() });
-        return saved;
-      }
+      savedProd = await res.json();
     }
   } catch (e) {
     console.warn('Backend product save notice:', e);
   }
 
-  // Direct Supabase upsert
+  // 2. Direct Supabase upsert with proper schema mapping
   try {
     const client = getSupabase();
-    await client.from('products').upsert(prod, { onConflict: 'id' });
+    const sbRow = productToSupabaseRow(prod);
+    if (sbRow) {
+      const { data, error } = await client.from('products').upsert(sbRow, { onConflict: 'id' }).select();
+      if (error) {
+        console.error('Supabase product upsert error:', error);
+      } else {
+        console.log('[Supabase Admin] Product synced successfully:', sbRow.id);
+      }
+    }
   } catch (sbErr) {
     console.warn('Supabase product save notice:', sbErr);
   }
 
   broadcastSync({ type: 'CATALOGUE_UPDATED', timestamp: Date.now() });
-  return prod;
+  return savedProd || prod;
 }
 
 export async function deleteAdminProduct(id: string, slug?: string): Promise<boolean> {

@@ -287,6 +287,102 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ||
 
 let _serverSupabase: SupabaseClient | null = null;
 
+function productToSupabaseRow(p: any) {
+  if (!p) return null;
+  const additional = {
+    lifestyleImage: p.lifestyleImage || p.hover_image || p.hover_image_url || p.mainImage || '',
+    galleryImages: Array.isArray(p.galleryImages) ? p.galleryImages : [],
+    imageFit: p.imageFit || 'cover',
+    hasVictorianFrame: !!p.hasVictorianFrame,
+    material: p.material || ''
+  };
+
+  const totalVariantStock = Array.isArray(p.variants) 
+    ? p.variants.reduce((sum: number, v: any) => sum + (typeof v.stock === 'number' ? v.stock : (v.inStock ? 10 : 0)), 0)
+    : 0;
+
+  const stock_count = (p.stock_count !== undefined && p.stock_count !== null && Number(p.stock_count) >= 0)
+    ? Number(p.stock_count)
+    : (totalVariantStock || 10);
+
+  const rawTitle = p.title || p.name || 'Studio Piece';
+  const slug = p.slug || rawTitle.toLowerCase().replace(/[^a-z0-9]/g, '-') || p.id;
+
+  return {
+    id: p.id,
+    name: rawTitle,
+    slug: slug,
+    price: Number(p.price || 0),
+    original_price: p.original_price ? Number(p.original_price) : null,
+    description: p.description || '',
+    category: p.category || 'general',
+    collection: p.collection || 'women',
+    image_url: p.mainImage || p.image || p.image_url || '',
+    additional_images: additional,
+    variants: Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [{ id: 'v1', name: 'One Size', inStock: stock_count > 0, stock: stock_count }],
+    tags: Array.isArray(p.details) ? p.details : (Array.isArray(p.tags) ? p.tags : []),
+    stock_count: stock_count,
+    is_featured: !!(p.isFeatured ?? p.is_featured),
+    is_new_arrival: !!p.is_new_arrival,
+    is_best_seller: !!p.is_best_seller,
+    created_at: p.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+}
+
+function supabaseRowToProduct(row: any) {
+  if (!row) return null;
+  const addObj = (row.additional_images && typeof row.additional_images === 'object' && !Array.isArray(row.additional_images))
+    ? row.additional_images
+    : {};
+
+  const addArr = Array.isArray(row.additional_images) ? row.additional_images : [];
+
+  const rawVariants = Array.isArray(row.variants) && row.variants.length > 0 
+    ? row.variants 
+    : [{ id: 'v1', name: 'One Size', inStock: Number(row.stock_count || 0) > 0, stock: Number(row.stock_count || 0) }];
+
+  const variants = rawVariants.map((v: any, idx: number) => {
+    const stock = typeof v.stock === 'number'
+      ? v.stock
+      : (v.stock !== undefined ? Number(v.stock) || 0 : (v.inStock === false ? 0 : 10));
+    return {
+      id: v.id || `v_${idx + 1}`,
+      name: v.name || v.size || 'One Size',
+      stock,
+      inStock: typeof v.inStock === 'boolean' ? (stock > 0 && v.inStock) : stock > 0
+    };
+  });
+
+  const totalVariantStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+  const stock_count = (row.stock_count !== undefined && row.stock_count !== null && Number(row.stock_count) >= 0)
+    ? Number(row.stock_count)
+    : totalVariantStock;
+
+  return {
+    id: row.id,
+    slug: row.slug || row.id,
+    title: row.name || row.title || 'Studio Piece',
+    collection: row.collection || 'women',
+    category: row.category || 'general',
+    price: Number(row.price || 0),
+    original_price: row.original_price ? Number(row.original_price) : undefined,
+    stock_count,
+    description: row.description || '',
+    details: Array.isArray(row.tags) ? row.tags : (Array.isArray(row.details) ? row.details : []),
+    mainImage: row.image_url || row.mainImage || row.image || '',
+    lifestyleImage: addObj.lifestyleImage || (addArr.length > 0 ? addArr[0] : '') || row.image_url || row.mainImage || '',
+    galleryImages: addObj.galleryImages || (addArr.length > 1 ? addArr.slice(1) : addArr) || (Array.isArray(row.galleryImages) ? row.galleryImages : []),
+    imageFit: addObj.imageFit || row.imageFit || 'cover',
+    hasVictorianFrame: addObj.hasVictorianFrame ?? !!row.hasVictorianFrame,
+    material: addObj.material || row.material || '',
+    variants,
+    isFeatured: !!(row.is_featured ?? row.isFeatured),
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  };
+}
+
 function withTimeoutServer<T>(promise: PromiseLike<T> | Promise<T> | any, ms = 2500, fallback: T): Promise<T> {
   return Promise.race([
     Promise.resolve(promise),
@@ -360,12 +456,15 @@ function initServerSupabase(): SupabaseClient | null {
           { data: null, error: null } as any
         );
         if (Array.isArray(sbProds) && sbProds.length > 0) {
-          console.log(`[Supabase Server] Synchronized ${sbProds.length} products from Supabase.`);
-          inMemoryProducts = sbProds;
+          const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
+          console.log(`[Supabase Server] Synchronized ${mapped.length} products from Supabase.`);
+          inMemoryProducts = mapped.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
+          persistProductsToDisk(inMemoryProducts);
         } else if (inMemoryProducts.length > 0) {
           console.log(`[Supabase Server] Seeding ${inMemoryProducts.length} catalog products to Supabase...`);
           try {
-            await supabase.from('products').upsert(inMemoryProducts, { onConflict: 'id' });
+            const mappedRows = inMemoryProducts.map(productToSupabaseRow).filter(Boolean);
+            await supabase.from('products').upsert(mappedRows, { onConflict: 'id' });
             console.log("[Supabase Server] Products seeded successfully to Supabase table 'products'.");
           } catch (upsertErr) {
             console.warn("[Supabase Server] Product seed notice:", upsertErr);
@@ -995,7 +1094,8 @@ app.get(["/api/products", "/products", "/api/products/"], async (req, res) => {
           { data: null, error: null } as any
         );
         if (Array.isArray(sbProds) && sbProds.length > 0) {
-          productsList = sbProds;
+          const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
+          productsList = mapped;
           inMemoryProducts = productsList.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
           try {
             persistProductsToDisk(inMemoryProducts);
@@ -1390,7 +1490,8 @@ app.post(["/api/admin/products/push-supabase", "/api/admin/products/push-firesto
         products_ready_in_catalog: inMemoryProducts.length 
       });
     }
-    const { error } = await supabase.from('products').upsert(inMemoryProducts, { onConflict: 'id' });
+    const mappedRows = inMemoryProducts.map(productToSupabaseRow).filter(Boolean);
+    const { error } = await supabase.from('products').upsert(mappedRows, { onConflict: 'id' });
     if (error) {
       return res.status(500).json({ error: error.message });
     }
@@ -1416,7 +1517,8 @@ app.get(["/api/admin/products", "/admin/products"], adminAuth, async (req, res) 
           { data: null, error: null } as any
         );
         if (Array.isArray(sbProds) && sbProds.length > 0) {
-          inMemoryProducts = sbProds.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
+          const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
+          inMemoryProducts = mapped.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
           try {
             persistProductsToDisk(inMemoryProducts);
           } catch (e) {}
@@ -1519,7 +1621,10 @@ app.post(["/api/admin/products", "/admin/products"], adminAuth, async (req, res)
   try {
     const supabase = initServerSupabase();
     if (supabase) {
-      await supabase.from('products').upsert(newProd, { onConflict: 'id' });
+      const sbRow = productToSupabaseRow(newProd);
+      if (sbRow) {
+        await supabase.from('products').upsert(sbRow, { onConflict: 'id' });
+      }
     }
   } catch (e) {
     console.warn("Supabase product insert notice:", e);
@@ -1572,7 +1677,10 @@ app.put(["/api/admin/products/:id", "/admin/products/:id"], adminAuth, async (re
   try {
     const supabase = initServerSupabase();
     if (supabase) {
-      await supabase.from('products').upsert(updatedProd, { onConflict: 'id' });
+      const sbRow = productToSupabaseRow(updatedProd);
+      if (sbRow) {
+        await supabase.from('products').upsert(sbRow, { onConflict: 'id' });
+      }
     }
   } catch (e) {
     console.warn("Supabase product update notice:", e);
