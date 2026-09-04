@@ -1140,7 +1140,7 @@ app.get(["/api/admin/auth/me", "/api/admin/me", "/admin/auth/me", "/admin/me"], 
   res.json({ user: "admin" });
 });
 
-app.get("/api/admin/orders", adminAuth, async (req, res) => {
+app.get(["/api/admin/orders", "/admin/orders"], adminAuth, async (req, res) => {
   const ordersMap = new Map<string, any>();
 
   // 1. In-memory & disk persisted orders
@@ -1176,7 +1176,7 @@ app.get("/api/admin/orders", adminAuth, async (req, res) => {
   res.json(resultList);
 });
 
-app.put("/api/admin/orders/:id/status", adminAuth, async (req, res) => {
+app.put(["/api/admin/orders/:id/status", "/admin/orders/:id/status"], adminAuth, async (req, res) => {
   const { id } = req.params;
   const { status, rejection_reason, courier_name, tracking_number } = req.body || {};
   
@@ -1227,7 +1227,7 @@ app.put("/api/admin/orders/:id/status", adminAuth, async (req, res) => {
   res.json(updatedRecord);
 });
 
-app.delete("/api/admin/orders/:id", adminAuth, async (req, res) => {
+app.delete(["/api/admin/orders/:id", "/admin/orders/:id"], adminAuth, async (req, res) => {
   const { id } = req.params;
   const target = inMemoryOrders.find(o => o.id === id || o.order_number === id);
   inMemoryOrders = inMemoryOrders.filter(o => o.id !== id && o.order_number !== id);
@@ -1248,7 +1248,7 @@ app.delete("/api/admin/orders/:id", adminAuth, async (req, res) => {
 });
 
 // Admin Recovery Endpoint: Re-creates or syncs an order manually if customer reported payment
-app.post("/api/admin/orders/recover", adminAuth, async (req, res) => {
+app.post(["/api/admin/orders/recover", "/admin/orders/recover"], adminAuth, async (req, res) => {
   try {
     const { order_number, customer_name, phone, address, total_amount, utr_number, items } = req.body || {};
     if (!order_number && !phone) {
@@ -1404,7 +1404,7 @@ app.post(["/api/admin/products/push-supabase", "/api/admin/products/push-firesto
   }
 });
 
-app.get("/api/admin/products", adminAuth, async (req, res) => {
+app.get(["/api/admin/products", "/admin/products"], adminAuth, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     try {
@@ -1434,7 +1434,7 @@ app.get("/api/admin/products", adminAuth, async (req, res) => {
   }
 });
 
-app.post("/api/admin/upload", adminAuth, upload.single('file'), async (req, res) => {
+app.post(["/api/admin/upload", "/admin/upload"], adminAuth, upload.single('file'), async (req, res) => {
   try {
     const file = req.file;
     if (!file) return res.status(400).json({ error: "No file uploaded" });
@@ -1443,7 +1443,28 @@ app.post("/api/admin/upload", adminAuth, upload.single('file'), async (req, res)
     const fileExt = file.originalname.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     
-    // Save to public/uploads directory
+    // 1. Try uploading to Supabase Storage Bucket 'product-images'
+    try {
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('product-images')
+          .upload(`catalog/${fileName}`, file.buffer, {
+            contentType: file.mimetype || 'image/jpeg',
+            upsert: true
+          });
+        if (!uploadErr && uploadData?.path) {
+          const { data: pubData } = supabase.storage.from('product-images').getPublicUrl(`catalog/${fileName}`);
+          if (pubData?.publicUrl) {
+            return res.json({ url: pubData.publicUrl });
+          }
+        }
+      }
+    } catch (sbStorageErr) {
+      console.warn("Supabase storage upload notice:", sbStorageErr);
+    }
+
+    // 2. Save to public/uploads directory
     try {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
       if (!fs.existsSync(uploadsDir)) {
@@ -1453,16 +1474,18 @@ app.post("/api/admin/upload", adminAuth, upload.single('file'), async (req, res)
       fs.writeFileSync(filePath, file.buffer);
       return res.json({ url: `/uploads/${fileName}` });
     } catch (fsErr) {
-      // Fallback to data URI if disk write is restricted
+      // Fallback to data URI if disk write is restricted on serverless
       const dataUri = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
       return res.json({ url: dataUri });
     }
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    console.warn("Admin upload fallback:", err);
+    const dataUri = req.file ? `data:${req.file.mimetype || 'image/jpeg'};base64,${req.file.buffer.toString('base64')}` : '';
+    res.json({ url: dataUri });
   }
 });
 
-app.post("/api/admin/products", adminAuth, async (req, res) => {
+app.post(["/api/admin/products", "/admin/products"], adminAuth, async (req, res) => {
   const { 
     id, slug, title, collection, category, price, stock_count, description, details, 
     mainImage, lifestyleImage, galleryImages, imageFit, variants, 
@@ -1505,7 +1528,7 @@ app.post("/api/admin/products", adminAuth, async (req, res) => {
   res.json(newProd);
 });
 
-app.put("/api/admin/products/:id", adminAuth, async (req, res) => {
+app.put(["/api/admin/products/:id", "/admin/products/:id"], adminAuth, async (req, res) => {
   const { id } = req.params;
   const { 
     slug, title, collection, category, price, stock_count, description, details, 
@@ -1558,7 +1581,7 @@ app.put("/api/admin/products/:id", adminAuth, async (req, res) => {
   res.json(updatedProd);
 });
 
-app.delete("/api/admin/products/:id", adminAuth, async (req, res) => {
+app.delete(["/api/admin/products/:id", "/admin/products/:id"], adminAuth, async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   const querySlug = (req.query.slug as string || '').toLowerCase().trim();
@@ -1639,7 +1662,7 @@ app.get(["/api/categories", "/categories", "/api/categories/"], async (req, res)
   }
 });
 
-app.get("/api/admin/categories", adminAuth, async (req, res) => {
+app.get(["/api/admin/categories", "/admin/categories"], adminAuth, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     let list: any[] = inMemoryCategories && inMemoryCategories.length > 0 ? [...inMemoryCategories] : [...DEFAULT_CATEGORIES];
@@ -1682,7 +1705,7 @@ app.get("/api/admin/categories", adminAuth, async (req, res) => {
   }
 });
 
-app.post("/api/admin/categories/clear-all", adminAuth, async (req, res) => {
+app.post(["/api/admin/categories/clear-all", "/admin/categories/clear-all"], adminAuth, async (req, res) => {
   inMemoryCategories = [];
   persistCategoriesToDisk([]);
   
@@ -1698,7 +1721,7 @@ app.post("/api/admin/categories/clear-all", adminAuth, async (req, res) => {
   res.json({ success: true, categories: [] });
 });
 
-app.post("/api/admin/categories", adminAuth, async (req, res) => {
+app.post(["/api/admin/categories", "/admin/categories"], adminAuth, async (req, res) => {
   const { id, name, slug, description } = req.body || {};
   const newSlug = (slug || name || 'new').toLowerCase().trim().replace(/\s+/g, '-');
   const newCat = {
@@ -1729,7 +1752,7 @@ app.post("/api/admin/categories", adminAuth, async (req, res) => {
   res.json(newCat);
 });
 
-app.put("/api/admin/categories/:id", adminAuth, async (req, res) => {
+app.put(["/api/admin/categories/:id", "/admin/categories/:id"], adminAuth, async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id);
   const { name, slug, description, oldSlug } = req.body || {};
@@ -1787,7 +1810,7 @@ app.put("/api/admin/categories/:id", adminAuth, async (req, res) => {
   res.json(updatedCat);
 });
 
-app.delete("/api/admin/categories/:id", adminAuth, async (req, res) => {
+app.delete(["/api/admin/categories/:id", "/admin/categories/:id"], adminAuth, async (req, res) => {
   const { id } = req.params;
   const targetId = decodeURIComponent(id).trim();
   const querySlug = (req.query.slug as string || '').toLowerCase().trim();
@@ -1829,7 +1852,7 @@ app.delete("/api/admin/categories/:id", adminAuth, async (req, res) => {
   res.json({ success: true, message: "Category deleted" });
 });
 
-app.post("/api/admin/categories/reset", adminAuth, async (req, res) => {
+app.post(["/api/admin/categories/reset", "/admin/categories/reset"], adminAuth, async (req, res) => {
   inMemoryCategories = [...DEFAULT_CATEGORIES];
   deletedCategorySlugs.clear();
   persistCategoriesToDisk(inMemoryCategories);
@@ -1845,7 +1868,7 @@ app.post("/api/admin/categories/reset", adminAuth, async (req, res) => {
   res.json(inMemoryCategories);
 });
 
-app.get("/api/admin/customers", adminAuth, async (req, res) => {
+app.get(["/api/admin/customers", "/admin/customers"], adminAuth, async (req, res) => {
   // 1. Supabase
   try {
     const supabase = initServerSupabase();
@@ -1884,7 +1907,7 @@ app.get("/api/admin/customers", adminAuth, async (req, res) => {
   res.json(Array.from(custMap.values()));
 });
 
-app.put("/api/admin/customers/:phone/toggle-blacklist", adminAuth, async (req, res) => {
+app.put(["/api/admin/customers/:phone/toggle-blacklist", "/admin/customers/:phone/toggle-blacklist"], adminAuth, async (req, res) => {
   const { phone } = req.params;
   try {
     const supabase = initServerSupabase();
@@ -1906,7 +1929,7 @@ app.put("/api/admin/customers/:phone/toggle-blacklist", adminAuth, async (req, r
   res.json({ phone, is_blacklisted: true });
 });
 
-app.put("/api/admin/settings", adminAuth, async (req, res) => {
+app.put(["/api/admin/settings", "/admin/settings"], adminAuth, async (req, res) => {
   const { key, value } = req.body || {};
   if (key) {
     inMemorySettings[key] = value;
@@ -1929,7 +1952,7 @@ app.put("/api/admin/settings", adminAuth, async (req, res) => {
 });
 
 // --- Promo Codes & Discounts API ---
-app.get(["/api/admin/promos", "/api/promos"], async (req, res) => {
+app.get(["/api/admin/promos", "/api/promos", "/admin/promos", "/promos"], async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   let promoList: any[] = [];
 
@@ -1957,7 +1980,7 @@ app.get(["/api/admin/promos", "/api/promos"], async (req, res) => {
   res.json(promoList);
 });
 
-app.put("/api/admin/promos", adminAuth, async (req, res) => {
+app.put(["/api/admin/promos", "/admin/promos"], adminAuth, async (req, res) => {
   const { promos } = req.body || {};
   if (Array.isArray(promos)) {
     inMemoryPromos = promos;
@@ -1980,7 +2003,7 @@ app.put("/api/admin/promos", adminAuth, async (req, res) => {
   res.json({ success: true, promos: inMemoryPromos });
 });
 
-app.get("/api/admin/analytics", adminAuth, async (req, res) => {
+app.get(["/api/admin/analytics", "/admin/analytics"], adminAuth, async (req, res) => {
   // Use inMemoryOrders / persisted orders
   const allOrders = inMemoryOrders.length > 0 ? inMemoryOrders : loadPersistedOrders();
   const paidOrders = allOrders.filter(o => o.status === 'paid' || o.status === 'shipped' || o.status === 'delivered');
@@ -2026,27 +2049,39 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 async function mountVite() {
   if (process.env.VERCEL) return;
   if (process.env.NODE_ENV !== "production") {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    try {
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn("Vite middleware init notice:", e);
+    }
   } else {
-    if (!process.env.VERCEL) {
+    try {
       const distPath = path.join(process.cwd(), 'dist');
+      const indexPath = path.join(distPath, 'index.html');
       app.use(express.static(distPath));
       app.get('*', (req, res) => {
-        res.sendFile(path.join(distPath, 'index.html'));
+        if (req.path.startsWith('/api')) {
+          return res.status(404).json({ error: `API endpoint ${req.path} not found` });
+        }
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          res.status(200).send("Matilda Storefront Ready.");
+        }
       });
-    }
+    } catch (e) {}
   }
 
-  if (!process.env.VERCEL) {
+  try {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
-  }
+  } catch (e) {}
 }
 mountVite();
 
