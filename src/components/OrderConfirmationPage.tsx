@@ -19,7 +19,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { getOrderDetails } from '../lib/googleDatabase';
+import { getOrderDetails } from '../lib/supabaseClient';
 
 interface OrderItem {
   product: {
@@ -89,7 +89,7 @@ export const OrderConfirmationPage: React.FC = () => {
 
     const fetchOrderDetails = async () => {
       try {
-        // 1. Fetch from Google Cloud Firestore & Backend API
+        // 1. Fetch from Supabase Cloud Database & Backend API
         try {
           const orderData = await getOrderDetails(rawOrderNum);
           if (orderData && isMounted) {
@@ -99,7 +99,7 @@ export const OrderConfirmationPage: React.FC = () => {
             return;
           }
         } catch (e) {
-          console.warn("Firestore order lookup notice:", e);
+          console.warn("Supabase order lookup notice:", e);
         }
 
         // 2. Check local storage

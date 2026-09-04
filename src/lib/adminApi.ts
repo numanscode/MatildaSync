@@ -186,7 +186,7 @@ export async function deleteAdminOrder(id: string): Promise<boolean> {
 
 export async function pushOrdersToCloud(): Promise<{ success: boolean; count: number; message: string }> {
   try {
-    const res = await fetch('/api/admin/orders/push-firestore', {
+    const res = await fetch('/api/admin/orders/push-supabase', {
       method: 'POST',
       headers: getAdminAuthHeaders(),
       credentials: 'include'

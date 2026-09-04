@@ -54,7 +54,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Database Engine: Google Cloud Firestore + durable local disk and in-memory persistence
+// Database Engine: Supabase Cloud Database + durable local disk and in-memory persistence
 
 // Dynamic Admin Password resolution
 function getAdminPassword(): string {
@@ -116,7 +116,7 @@ const adminAuth = (req: express.Request, res: express.Response, next: express.Ne
   }
 };
 
-// --- Persistent Orders & Google Firestore Architecture ---
+// --- Persistent Orders & Supabase Architecture ---
 const ORDERS_STORAGE_PATHS = [
   path.join(process.cwd(), 'data', 'orders.json'),
   path.join('/tmp', 'matilda_orders.json')
@@ -307,11 +307,6 @@ function initServerSupabase(): SupabaseClient | null {
   } catch (err) {
     console.error("[Supabase Server] Initialization error:", err);
   }
-  return null;
-}
-
-// Backward compatibility helper
-async function initServerFirestore() {
   return null;
 }
 
@@ -1288,6 +1283,24 @@ app.post("/api/admin/orders/recover", adminAuth, async (req, res) => {
     res.json({ success: true, order: recoveredOrder });
   } catch (err: any) {
     res.status(500).json({ error: err?.message || "Recovery failed" });
+  }
+});
+
+// Push all server orders to Supabase
+app.post(["/api/admin/orders/push-supabase", "/api/admin/orders/push-firestore"], adminAuth, async (req, res) => {
+  try {
+    const supabase = initServerSupabase();
+    if (!supabase) {
+      return res.status(400).json({ error: "Supabase not connected." });
+    }
+    let count = 0;
+    for (const ord of inMemoryOrders) {
+      const { error } = await supabase.from('orders').upsert(ord, { onConflict: 'order_number' });
+      if (!error) count++;
+    }
+    res.json({ success: true, count, message: `Successfully synced ${count} orders to Supabase table 'orders'.` });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

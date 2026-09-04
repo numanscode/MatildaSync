@@ -47,7 +47,7 @@ export const CheckoutPage: React.FC = () => {
   useEffect(() => {
     if (isCartOpen) setIsCartOpen(false);
 
-    // Fetch store settings from Backend API & Firestore with graceful fallback
+    // Fetch store settings from Backend API & Supabase with graceful fallback
     const loadSettings = async () => {
       try {
         const res = await fetch('/api/store/settings');
@@ -328,7 +328,7 @@ export const CheckoutPage: React.FC = () => {
         screenshot: screenshotBase64
       };
 
-      // Multi-Engine Unified Checkout Submit (Backend API -> Google Firestore -> Local Durable Store)
+      // Multi-Engine Unified Checkout Submit (Backend API -> Supabase Database -> Local Durable Store)
       const orderRecord = {
         order_number: finalOrderNumber,
         customer_name: formData.name,

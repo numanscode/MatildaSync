@@ -247,7 +247,7 @@ export const AdminSales: React.FC = () => {
         {/* Save Bar */}
         <div className="pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
           <span className="font-micro uppercase tracking-widest text-[9px] text-gray-400">
-            Changes sync to Firebase, LocalStorage, and Express API
+            Changes sync directly to Supabase, LocalStorage, and Express API
           </span>
           <div className="flex items-center gap-3">
             {saveSuccess && (

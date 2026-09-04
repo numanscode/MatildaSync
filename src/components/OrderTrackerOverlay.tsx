@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getOrderDetails } from '../lib/googleDatabase';
+import { getOrderDetails } from '../lib/supabaseClient';
 
 export const OrderTrackerOverlay: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,7 +14,7 @@ export const OrderTrackerOverlay: React.FC = () => {
     const fetchStatus = async () => {
       setLoading(true);
       try {
-        // 1. Check Google Cloud Firestore & Backend API
+        // 1. Check Supabase Database & Backend API
         const order = await getOrderDetails(orderNumber);
         if (order) {
           const isCod = order.utr_number?.toUpperCase().includes('COD');
@@ -45,7 +45,7 @@ export const OrderTrackerOverlay: React.FC = () => {
           }
         }
 
-        // Default fallback if not found in Firestore or localStorage
+        // Default fallback if not found
         if (!statusData) {
           setStatusData({
             status: 'pending',

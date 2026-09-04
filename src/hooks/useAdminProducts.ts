@@ -179,7 +179,7 @@ export const useAdminProducts = () => {
 
     window.dispatchEvent(new Event('matilda-catalogue-updated'));
 
-    // 3. Save via API & Firestore with safety timeout
+    // 3. Save via API & Supabase with safety timeout
     try {
       await withTimeout(saveAdminProduct(payload, !!id), 4000, null);
     } catch (err) {

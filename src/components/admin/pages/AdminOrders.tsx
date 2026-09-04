@@ -4,7 +4,7 @@ import {
   updateOrderStatus, 
   deleteOrderRecord 
 } from '../../../lib/adminApi';
-import { syncUnsyncedOrders } from '../../../lib/googleDatabase';
+import { syncUnsyncedOrders } from '../../../lib/supabaseClient';
 import { 
   Eye, 
   Truck, 

@@ -134,7 +134,7 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [categories, setCategories] = useState<CategoryOption[]>(() => DEFAULT_CATEGORIES);
   const [isManagementOpen, setIsManagementOpen] = useState<boolean>(false);
 
-  // Sync load products and categories from backend API / Firestore
+  // Sync load products and categories from backend API / Supabase
   const refreshCatalogue = useCallback(async () => {
     const deletedSet = getLocalDeletedProductIds();
 
