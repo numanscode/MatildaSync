@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ord-1788532275844-879",
+    "order_number": "MT-7788",
+    "customer_name": "Priya Sharma",
+    "phone": "9876543210",
+    "address": "12 Park Street, Bangalore",
+    "items": {
+      "list": [
+        {
+          "title": "Gilded Pearl Choker",
+          "price": 350,
+          "quantity": 1
+        }
+      ],
+      "payment_method": "cod"
+    },
+    "total_amount": 350,
+    "utr_number": "COD - Cash on Delivery",
+    "screenshot_url": "",
+    "status": "pending",
+    "created_at": "2026-09-04T14:31:15.844Z"
+  }
+]

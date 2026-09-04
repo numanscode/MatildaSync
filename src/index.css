@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Viaoda+Libre&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Viaoda Libre', Georgia, serif;
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-matilda: 'Viaoda Libre', Georgia, serif;
+}
+
+@layer base {
+  html {
+    font-size: 100%; /* Standard 16px root */
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Responsive typography scaling without layout thrashing */
+  @media screen and (min-width: 1440px) {
+    html {
+      font-size: 106.25%; /* 17px on large desktop monitors */
+    }
+  }
+
+  /* Touch accessibility */
+  button, a {
+    touch-action: manipulation;
+  }
+
+  :root[data-collection="women"] {
+    --bg-primary: #FAF6F0;
+    --bg-secondary: #F2ECE1;
+    --text-dominant: #3B0E16;
+    --text-primary: #4A1721;
+    --text-muted: #805B63;
+    --border-main: #E5DACF;
+    --border-maroon: #7A1228;
+    --accent-script: #8C1C33;
+    --accent-gold: #B88A4E;
+    --card-bg: #FCFAF5;
+    --card-inner: #F4EFE6;
+    --tag-bg: rgba(122, 18, 40, 0.08);
+  }
+
+  :root[data-collection="men"] {
+    --bg-primary: #E2DDD5;
+    --bg-secondary: #D4CEBF;
+    --text-dominant: #111417;
+    --text-primary: #1D2125;
+    --text-muted: #525862;
+    --border-main: #C2BAA8;
+    --border-maroon: #6B1023;
+    --accent-script: #8C1C33;
+    --accent-gold: #B88A4E;
+    --card-bg: #EAE5DC;
+    --card-inner: #D9D3C5;
+    --tag-bg: rgba(107, 16, 35, 0.12);
+  }
+
+  /* Smooth transition for theme variable color updates across layout containers */
+  body, section, header, footer, nav, main, article, aside {
+    transition-property: background-color, color, border-color;
+    transition-duration: 500ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.font-display {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.font-body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.font-matilda {
+  font-family: 'Viaoda Libre', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.font-serif-display {
+  font-family: 'Viaoda Libre', Georgia, serif;
+}
+
+.font-script {
+  font-family: 'Viaoda Libre', Georgia, serif;
+  font-style: italic;
+}
+
+.font-serif-italic {
+  font-family: 'Viaoda Libre', Georgia, serif;
+  font-style: italic;
+}
+
+.font-micro {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+/* Custom scrollbar for desktop screens */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-maroon);
+    border-radius: 9999px;
+  }
+}
+
+/* Completely remove scrollbars from mobile screen sizes (< 768px) */
+@media (max-width: 767px) {
+  ::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  html, body, * {
+    -ms-overflow-style: none !important;  /* IE and Edge */
+    scrollbar-width: none !important;  /* Firefox */
+  }
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+/* Hide scrollbar utility class */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Film grain subtle overlay */
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' h='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Vintage Zine Arch Frame Utility (Smooth top rounded arch) */
+.arch-frame {
+  border-top-left-radius: 9999px;
+  border-top-right-radius: 9999px;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+}
+
+/* Smooth Botanical Frame */
+.smooth-frame {
+  border-radius: 28px;
+  box-shadow: 0 10px 30px -10px rgba(61, 9, 16, 0.08);
+}
+
+
+/* Custom Scrollbar for Live Feed */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-admin-subtle);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-admin);
+}

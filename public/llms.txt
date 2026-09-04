@@ -1,0 +1,41 @@
+# matilda.
+> The valley's finest accessory store for every occasion — crafted jewelry, bespoke accessories & contemporary essentials.
+
+## About Matilda
+Matilda is a contemporary artisanal jewelry and accessories brand rooted in the valley. We craft premium solid 925 sterling silver chains, signet rings, textured cuff bracelets, baroque freshwater pearl necklaces, and curated everyday essentials designed for women and men.
+
+## Brand Identity & Craft
+- **Materials**: 100% Solid 925 Sterling Silver, surgical-grade hypoallergenic stainless metals, genuine freshwater baroque pearls. Strictly free of nickel and synthetic lacquer coatings.
+- **Finish**: Hand-finished link by link in our valley studio. Forged to rest cold, tactile, and real on human skin.
+- **Philosophy**: Anti-disposable luxury. Pieces crafted to accompany life's rituals, designed to age with dignity and character.
+
+## Core Collections
+1. **Women's Edit**: 
+   - Minimalist solid silver chains and pendants
+   - Sculptural signet and stacking rings
+   - Freshwater baroque pearl necklaces & drops
+   - Textured ear cuffs and everyday essentials
+2. **Men's Edit**:
+   - Heavy solid silver Cuban chains & curb chains
+   - Monolithic solid silver signets & geometric rings
+   - Textured forged cuff bracelets
+   - Heavyweight everyday accessories with tactile presence
+3. **Unisex Essentials**:
+   - Ceramic morning vessels, artisanal pins, bespoke studio pieces
+
+## Shopping & Payment Options
+- **Currency**: Indian Rupee (INR / ₹)
+- **Instant UPI**: Direct QR / UPI payment with Google Pay, PhonePe, Paytm, BHIM, and bank apps.
+- **Cash on Delivery (COD)**: Available pan-India for orders up to ₹400.
+- **Shipping**: Pan-India express delivery through premium courier networks (Delhivery, BlueDart, DTDC). Standard transit time is 3–5 business days. Free shipping on all prepaid orders.
+- **Tracking**: Real-time order tracker overlay and dedicated customer confirmation portal.
+
+## Contact & Customer Care
+- **Studio Location**: The Valley Studio, Kashmir, India
+- **WhatsApp Support**: +91 99066 00000
+- **Email**: hello@matilda-store.in
+- **Website**: https://matilda-store.vercel.app/
+
+## Extended Documentation
+For the complete product catalog, materials manifest, and sizing guide, see:
+- https://matilda-store.vercel.app/llms-full.txt

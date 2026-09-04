@@ -1,0 +1,27 @@
+# robots.txt for matilda. (The Valley's Finest Accessory Store)
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/admin
+Disallow: /api/admin/*
+Disallow: /checkout
+Disallow: /order-confirmation/*
+
+# AI Search Crawlers & Large Language Models
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://matilda-store.vercel.app/sitemap.xml
