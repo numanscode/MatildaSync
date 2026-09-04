@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
 import fs from "fs";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 // Explicitly load .env file if present in root
 try {
@@ -274,184 +275,113 @@ function persistCategoriesToDisk(categories: any[]) {
 let inMemoryCategories: any[] = loadPersistedCategories();
 const deletedCategorySlugs = new Set<string>();
 
-// Google Cloud Firestore Integration (Firebase Web SDK / Node compatible)
-let _serverFirestore: any = null;
-let _fbDoc: any = null;
-let _fbSetDoc: any = null;
-let _fbGetDoc: any = null;
-let _fbGetDocs: any = null;
-let _fbCollection: any = null;
-let _fbUpdateDoc: any = null;
-let _fbDeleteDoc: any = null;
+// Supabase Database Engine
+const SUPABASE_URL = process.env.SUPABASE_URL || 
+                     process.env.VITE_SUPABASE_URL || 
+                     'https://utcumpugoogwsgafotlh.supabase.co';
 
-function withTimeoutServer<T>(promise: Promise<T>, ms = 2500, fallback: T): Promise<T> {
+const SUPABASE_ANON_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 
+                          process.env.SUPABASE_ANON_KEY || 
+                          process.env.VITE_SUPABASE_ANON_KEY || 
+                          'sb_publishable_EzZ6EuXR-9_ZPf9G38Ou3Q_zGyUpOom';
+
+let _serverSupabase: SupabaseClient | null = null;
+
+function withTimeoutServer<T>(promise: PromiseLike<T> | Promise<T> | any, ms = 2500, fallback: T): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))
   ]);
 }
 
-function resolveFirebaseConfig() {
-  let parsedConfig: any = {};
-  if (process.env.FIREBASE_CONFIG) {
-    try {
-      parsedConfig = typeof process.env.FIREBASE_CONFIG === 'string' 
-        ? JSON.parse(process.env.FIREBASE_CONFIG) 
-        : process.env.FIREBASE_CONFIG;
-    } catch (e) {
-      console.warn("[Firebase Server] Failed to parse FIREBASE_CONFIG JSON:", e);
-    }
-  }
-
-  const projectId = process.env.FIREBASE_PROJECT_ID || 
-                    process.env.VITE_FIREBASE_PROJECT_ID || 
-                    process.env.GOOGLE_CLOUD_PROJECT || 
-                    process.env.GCLOUD_PROJECT || 
-                    parsedConfig.projectId || 
-                    '';
-
-  const apiKey = process.env.FIREBASE_API_KEY || 
-                 process.env.VITE_FIREBASE_API_KEY || 
-                 parsedConfig.apiKey || 
-                 '';
-
-  const authDomain = process.env.FIREBASE_AUTH_DOMAIN || 
-                     process.env.VITE_FIREBASE_AUTH_DOMAIN || 
-                     parsedConfig.authDomain || 
-                     (projectId ? `${projectId}.firebaseapp.com` : '');
-
-  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || 
-                        process.env.VITE_FIREBASE_STORAGE_BUCKET || 
-                        parsedConfig.storageBucket || 
-                        (projectId ? `${projectId}.appspot.com` : '');
-
-  const messagingSenderId = process.env.FIREBASE_MESSAGING_SENDER_ID || 
-                            process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || 
-                            parsedConfig.messagingSenderId || 
-                            '';
-
-  const appId = process.env.FIREBASE_APP_ID || 
-                process.env.VITE_FIREBASE_APP_ID || 
-                parsedConfig.appId || 
-                '';
-
-  return {
-    projectId,
-    apiKey,
-    authDomain,
-    storageBucket,
-    messagingSenderId,
-    appId
-  };
-}
-
-async function initServerFirestore() {
-  if (_serverFirestore) return _serverFirestore;
-  
-  const fbConfig = resolveFirebaseConfig();
-  const isVercel = !!process.env.VERCEL;
-
-  console.log("[Firebase Server] Checking configuration:", {
-    runtime: isVercel ? 'Vercel Serverless' : 'Node Container/Local',
-    nodeEnv: process.env.NODE_ENV || 'development',
-    hasProjectId: !!fbConfig.projectId,
-    projectId: fbConfig.projectId ? `${fbConfig.projectId.substring(0, 4)}***` : '(none)',
-    hasApiKey: !!fbConfig.apiKey,
-    hasAuthDomain: !!fbConfig.authDomain,
-    detectedVars: {
-      FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
-      VITE_FIREBASE_PROJECT_ID: !!process.env.VITE_FIREBASE_PROJECT_ID,
-      GOOGLE_CLOUD_PROJECT: !!process.env.GOOGLE_CLOUD_PROJECT,
-      FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
-      FIREBASE_CONFIG: !!process.env.FIREBASE_CONFIG
-    }
-  });
-
-  if (!fbConfig.projectId) {
-    console.warn("[Firebase Server] Firestore connection skipped: No FIREBASE_PROJECT_ID found in environment variables. If hosted on Vercel, please add FIREBASE_PROJECT_ID and FIREBASE_API_KEY under Project Settings -> Environment Variables.");
-    return null;
-  }
-
+function initServerSupabase(): SupabaseClient | null {
+  if (_serverSupabase) return _serverSupabase;
   try {
-    const initPromise = (async () => {
-      console.log(`[Firebase Server] Initializing Firebase App for project "${fbConfig.projectId}"...`);
-      const { initializeApp, getApps } = await import('firebase/app');
-      const { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc, deleteDoc } = await import('firebase/firestore');
-      _fbDoc = doc;
-      _fbSetDoc = setDoc;
-      _fbGetDoc = getDoc;
-      _fbGetDocs = getDocs;
-      _fbCollection = collection;
-      _fbUpdateDoc = updateDoc;
-      _fbDeleteDoc = deleteDoc;
-
-      const app = getApps().length > 0 ? getApps()[0] : initializeApp(fbConfig);
-      _serverFirestore = getFirestore(app);
-      console.log("[Firebase Server] Firestore connection established successfully.");
-      return _serverFirestore;
-    })();
-
-    return await withTimeoutServer(initPromise, 3500, null);
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      _serverSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false }
+      });
+      console.log(`[Supabase Server] Connected to Supabase at: ${SUPABASE_URL}`);
+      return _serverSupabase;
+    }
   } catch (err) {
-    console.error("[Firebase Server] Server Firestore initialization failed:", err);
-    return null;
+    console.error("[Supabase Server] Initialization error:", err);
   }
+  return null;
 }
 
-// Initial Firestore sync in background
+// Backward compatibility helper
+async function initServerFirestore() {
+  return null;
+}
+
+// Initial Supabase sync in background
 (async () => {
   try {
-    const db = await initServerFirestore();
-    if (db && _fbCollection && _fbGetDocs) {
-      console.log("[Firebase Server] Starting initial background synchronization with Firestore...");
+    const supabase = initServerSupabase();
+    if (supabase) {
+      console.log("[Supabase Server] Starting initial background synchronization...");
+      
       // 1. Sync orders
-      const snap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'orders')), 3000, null);
-      if (snap && !snap.empty) {
-        const fsOrders: any[] = [];
-        snap.forEach((d: any) => fsOrders.push(d.data()));
-        if (fsOrders.length > 0) {
-          console.log(`[Firebase Server] Synchronized ${fsOrders.length} orders from Firestore.`);
+      try {
+        const { data: sbOrders } = await withTimeoutServer(
+          supabase.from('orders').select('*').order('created_at', { ascending: false }),
+          3500,
+          { data: null, error: null } as any
+        );
+        if (Array.isArray(sbOrders) && sbOrders.length > 0) {
+          console.log(`[Supabase Server] Synchronized ${sbOrders.length} orders from Supabase.`);
           const map = new Map<string, any>();
           inMemoryOrders.forEach(o => map.set(o.order_number || o.id, o));
-          fsOrders.forEach(o => map.set(o.order_number || o.id, o));
+          sbOrders.forEach((o: any) => map.set(o.order_number || o.id, o));
           inMemoryOrders = Array.from(map.values()).sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
           persistOrdersToDisk(inMemoryOrders);
         }
+      } catch (e) {
+        console.warn("[Supabase Server] Orders sync notice:", e);
       }
 
       // 2. Sync categories
-      const catSnap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'categories')), 3000, null);
-      if (catSnap && !catSnap.empty) {
-        const fsCats: any[] = [];
-        catSnap.forEach((d: any) => fsCats.push(d.data()));
-        if (fsCats.length > 0) {
-          console.log(`[Firebase Server] Synchronized ${fsCats.length} categories from Firestore.`);
-          inMemoryCategories = fsCats;
+      try {
+        const { data: sbCats } = await withTimeoutServer(
+          supabase.from('categories').select('*'),
+          3500,
+          { data: null, error: null } as any
+        );
+        if (Array.isArray(sbCats) && sbCats.length > 0) {
+          console.log(`[Supabase Server] Synchronized ${sbCats.length} categories from Supabase.`);
+          inMemoryCategories = sbCats;
           persistCategoriesToDisk(inMemoryCategories);
         }
+      } catch (e) {
+        console.warn("[Supabase Server] Categories sync notice:", e);
       }
 
       // 3. Sync & Seed Products
-      const prodSnap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'products')), 3000, null);
-      if (prodSnap && !prodSnap.empty) {
-        const fsProds: any[] = [];
-        prodSnap.forEach((d: any) => fsProds.push(d.data()));
-        if (fsProds.length > 0) {
-          console.log(`[Firebase Server] Synchronized ${fsProds.length} products from Firestore.`);
-          inMemoryProducts = fsProds;
-        }
-      } else if (inMemoryProducts.length > 0) {
-        console.log(`[Firebase Server] Seeding ${inMemoryProducts.length} catalog products to Firestore...`);
-        for (const prod of inMemoryProducts) {
-          if (_fbDoc && _fbSetDoc) {
-            await _fbSetDoc(_fbDoc(db, 'products', prod.id), prod, { merge: true });
+      try {
+        const { data: sbProds } = await withTimeoutServer(
+          supabase.from('products').select('*'),
+          3500,
+          { data: null, error: null } as any
+        );
+        if (Array.isArray(sbProds) && sbProds.length > 0) {
+          console.log(`[Supabase Server] Synchronized ${sbProds.length} products from Supabase.`);
+          inMemoryProducts = sbProds;
+        } else if (inMemoryProducts.length > 0) {
+          console.log(`[Supabase Server] Seeding ${inMemoryProducts.length} catalog products to Supabase...`);
+          try {
+            await supabase.from('products').upsert(inMemoryProducts, { onConflict: 'id' });
+            console.log("[Supabase Server] Products seeded successfully to Supabase table 'products'.");
+          } catch (upsertErr) {
+            console.warn("[Supabase Server] Product seed notice:", upsertErr);
           }
         }
-        console.log("[Firebase Server] Products seeded successfully to Firestore collection 'products'.");
+      } catch (e) {
+        console.warn("[Supabase Server] Products sync notice:", e);
       }
     }
   } catch (e) {
-    console.warn("[Firebase Server] Initial sync notice:", e);
+    console.warn("[Supabase Server] Initial sync notice:", e);
   }
 })();
 
@@ -460,66 +390,53 @@ async function initServerFirestore() {
 app.get(["/api/health", "/health"], (req, res) => {
   res.json({ 
     status: "ok",
-    firestore_connected: !!_serverFirestore,
+    supabase_connected: !!_serverSupabase,
+    database: "supabase",
     runtime: process.env.VERCEL ? 'vercel' : 'node',
     timestamp: new Date().toISOString()
   });
 });
 
-// Diagnostics endpoint to verify Firebase connectivity on Vercel or local
-app.get(["/api/admin/firebase-status", "/api/firebase/diagnostics"], async (req, res) => {
-  const fbConfig = resolveFirebaseConfig();
-  const db = await initServerFirestore();
+// Diagnostics endpoint to verify Supabase connectivity
+app.get(["/api/admin/supabase-status", "/api/supabase/diagnostics", "/api/admin/firebase-status"], async (req, res) => {
+  const supabase = initServerSupabase();
   
   let probeResults: any = {
-    connected: !!db,
+    connected: !!supabase,
     products_count: inMemoryProducts.length,
     orders_count: inMemoryOrders.length,
     categories_count: inMemoryCategories.length
   };
 
-  if (db && _fbCollection && _fbGetDocs) {
+  if (supabase) {
     try {
-      const prodSnap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'products')), 2500, null);
-      probeResults.firestore_remote_products = prodSnap ? prodSnap.size : 'timeout/unavailable';
+      const { data, count, error } = await supabase.from('products').select('id', { count: 'exact', head: true });
+      probeResults.supabase_remote_products = error ? `error: ${error.message}` : (count ?? 'available');
     } catch (e: any) {
-      probeResults.firestore_probe_error = e?.message;
+      probeResults.supabase_probe_error = e?.message;
     }
   }
 
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.json({
-    status: db ? "connected" : "unconfigured",
+    status: supabase ? "connected" : "unconfigured",
+    database: "supabase",
+    supabase_url: SUPABASE_URL,
+    has_anon_key: !!SUPABASE_ANON_KEY,
     runtime: process.env.VERCEL ? "vercel" : "node",
-    project_id: fbConfig.projectId || null,
-    has_api_key: !!fbConfig.apiKey,
-    has_auth_domain: !!fbConfig.authDomain,
-    env_vars_detected: {
-      FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
-      VITE_FIREBASE_PROJECT_ID: !!process.env.VITE_FIREBASE_PROJECT_ID,
-      GOOGLE_CLOUD_PROJECT: !!process.env.GOOGLE_CLOUD_PROJECT,
-      FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
-      VITE_FIREBASE_API_KEY: !!process.env.VITE_FIREBASE_API_KEY,
-      FIREBASE_CONFIG: !!process.env.FIREBASE_CONFIG
-    },
     diagnostics: probeResults,
-    message: db 
-      ? "Firestore is fully configured and operational." 
-      : "Firestore is not connected. Add FIREBASE_PROJECT_ID and FIREBASE_API_KEY in Vercel Project Settings."
+    message: supabase 
+      ? "Supabase is fully configured and operational." 
+      : "Supabase is not connected. Please verify SUPABASE_URL and SUPABASE_ANON_KEY."
   });
 });
 
 app.get(["/api/config/public", "/api/config"], (req, res) => {
-  const fbConfig = resolveFirebaseConfig();
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.json({
-    firebase: {
-      projectId: fbConfig.projectId,
-      apiKey: fbConfig.apiKey,
-      authDomain: fbConfig.authDomain,
-      storageBucket: fbConfig.storageBucket,
-      messagingSenderId: fbConfig.messagingSenderId,
-      appId: fbConfig.appId
+    supabase: {
+      url: SUPABASE_URL,
+      anonKey: SUPABASE_ANON_KEY
     },
     upi: {
       upi_id: process.env.UPI_ID || process.env.VITE_UPI_ID || "your-upi-id@okbank",
@@ -555,14 +472,12 @@ async function deductStockForOrderedItems(itemsData: any) {
       memProd.stock_count = memProd.variants.reduce((sum: number, v: any) => sum + (typeof v.stock === 'number' ? v.stock : (v.inStock ? 10 : 0)), 0);
     }
 
-    // 2. Google Cloud Firestore update if available
+    // 2. Supabase update if available
     try {
-      const db = await initServerFirestore();
-      if (db && _fbDoc && _fbGetDoc && _fbUpdateDoc) {
-        const pRef = _fbDoc(db, 'products', productId);
-        const pSnap = await _fbGetDoc(pRef);
-        if (pSnap.exists()) {
-          const prod = pSnap.data();
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: prod } = await supabase.from('products').select('*').eq('id', productId).maybeSingle();
+        if (prod) {
           let updatedVariants = Array.isArray(prod.variants) ? [...prod.variants] : [];
           if (updatedVariants.length > 0) {
             let found = false;
@@ -582,11 +497,11 @@ async function deductStockForOrderedItems(itemsData: any) {
             }
           }
           const newTotalStock = updatedVariants.reduce((sum: number, v: any) => sum + (typeof v.stock === 'number' ? v.stock : (v.inStock ? 10 : 0)), 0);
-          await _fbUpdateDoc(pRef, { variants: updatedVariants, stock_count: newTotalStock });
+          await supabase.from('products').update({ variants: updatedVariants, stock_count: newTotalStock }).eq('id', productId);
         }
       }
     } catch (e) {
-      console.warn("Firestore stock deduction notice:", e);
+      console.warn("Supabase stock deduction notice:", e);
     }
   }
 }
@@ -719,41 +634,38 @@ app.post(["/api/checkout", "/checkout"], (req: any, res: any, next: any) => {
     // Deduct stock for ordered items
     deductStockForOrderedItems(itemsData);
 
-    // Save to Google Cloud Firestore & update customer CRM
+    // Save to Supabase & update customer CRM
     try {
-      const db = await initServerFirestore();
-      if (db && _fbDoc && _fbSetDoc) {
-        await _fbSetDoc(_fbDoc(db, 'orders', orderNumber), newOrderObj, { merge: true });
+      const supabase = initServerSupabase();
+      if (supabase) {
+        await supabase.from('orders').upsert(newOrderObj, { onConflict: 'order_number' });
 
-        // Customer CRM record in Firestore
-        if (phone && phone.trim() && _fbGetDoc) {
+        // Customer CRM record in Supabase
+        if (phone && phone.trim()) {
           try {
-            const custRef = _fbDoc(db, 'customers', phone.trim());
-            const custSnap = await _fbGetDoc(custRef);
-            if (!custSnap.exists()) {
-              await _fbSetDoc(custRef, {
-                phone: phone.trim(),
+            const cleanPhone = phone.trim();
+            const { data: cust } = await supabase.from('customers').select('*').eq('phone', cleanPhone).maybeSingle();
+            if (!cust) {
+              await supabase.from('customers').insert({
+                phone: cleanPhone,
                 name,
                 total_spent: 0,
                 order_count: 1,
                 last_order_at: new Date().toISOString()
               });
             } else {
-              const cur = custSnap.data();
-              if (_fbUpdateDoc) {
-                await _fbUpdateDoc(custRef, {
-                  order_count: (cur.order_count || 0) + 1,
-                  last_order_at: new Date().toISOString()
-                });
-              }
+              await supabase.from('customers').update({
+                order_count: (cust.order_count || 0) + 1,
+                last_order_at: new Date().toISOString()
+              }).eq('phone', cleanPhone);
             }
           } catch (cErr: any) {
             console.warn("Customer CRM record notice:", cErr?.message);
           }
         }
       }
-    } catch (fsErr) {
-      console.warn("Firestore order write notice:", fsErr);
+    } catch (sbErr) {
+      console.warn("Supabase order write notice:", sbErr);
     }
 
     return res.json({ success: true, orderNumber });
@@ -777,10 +689,7 @@ app.post(["/api/orders/sync", "/orders/sync"], async (req: express.Request, res:
     const existingMap = new Map<string, any>();
     inMemoryOrders.forEach(o => existingMap.set(o.order_number || o.id, o));
 
-    let db: any = null;
-    try {
-      db = await initServerFirestore();
-    } catch (e) {}
+    const supabase = initServerSupabase();
 
     for (const incoming of orders) {
       const key = incoming.order_number || incoming.id;
@@ -791,10 +700,10 @@ app.post(["/api/orders/sync", "/orders/sync"], async (req: express.Request, res:
         inMemoryOrders.unshift(incoming);
         syncedCount++;
 
-        // Save to Google Firestore
-        if (db && _fbDoc && _fbSetDoc) {
+        // Save to Supabase
+        if (supabase) {
           try {
-            await _fbSetDoc(_fbDoc(db, 'orders', key), incoming, { merge: true });
+            await supabase.from('orders').upsert(incoming, { onConflict: 'order_number' });
           } catch (e) {}
         }
       }
@@ -856,8 +765,8 @@ function computeOrderStage(status: string, trackingNumber?: string) {
   };
 }
 
-// Find order across in-memory cache, local disk, and Google Cloud Firestore
-async function findOrderInFirestoreOrMemory(orderQuery: string) {
+// Find order across in-memory cache, local disk, and Supabase
+async function findOrderInSupabaseOrMemory(orderQuery: string) {
   const raw = String(orderQuery || '').trim();
   if (!raw) return null;
 
@@ -882,62 +791,48 @@ async function findOrderInFirestoreOrMemory(orderQuery: string) {
   });
   if (memMatch) return memMatch;
 
-  // 2. Query Google Cloud Firestore
+  // 2. Query Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbGetDoc) {
-      // 2a. Direct doc lookup with prefix (e.g. MT-1234)
-      let snap = await _fbGetDoc(_fbDoc(db, 'orders', withPrefix));
-      if (snap.exists()) {
-        const d = snap.data();
-        inMemoryOrders.unshift(d);
-        persistOrdersToDisk(inMemoryOrders);
-        return d;
-      }
-      // 2b. Direct doc lookup with upper string
-      snap = await _fbGetDoc(_fbDoc(db, 'orders', upper));
-      if (snap.exists()) {
-        const d = snap.data();
-        inMemoryOrders.unshift(d);
-        persistOrdersToDisk(inMemoryOrders);
-        return d;
-      }
-      // 2c. Direct doc lookup with raw string
-      snap = await _fbGetDoc(_fbDoc(db, 'orders', raw));
-      if (snap.exists()) {
-        const d = snap.data();
-        inMemoryOrders.unshift(d);
-        persistOrdersToDisk(inMemoryOrders);
-        return d;
-      }
-      // 2d. Collection scan
-      if (_fbCollection && _fbGetDocs) {
-        const cSnap = await _fbGetDocs(_fbCollection(db, 'orders'));
-        if (!cSnap.empty) {
-          for (const doc of cSnap.docs) {
-            const data = doc.data();
-            const dNum = (data.order_number || '').toUpperCase();
-            const dId = (data.id || '').toUpperCase();
-            const dPhone = String(data.phone || '').replace(/[^0-9]/g, '');
-            const dTrack = (data.tracking_number || '').toUpperCase();
+    const supabase = initServerSupabase();
+    if (supabase) {
+      // 2a. Direct lookup
+      const { data: directMatch } = await supabase
+        .from('orders')
+        .select('*')
+        .or(`order_number.eq.${withPrefix},order_number.eq.${upper},id.eq.${raw},id.eq.${upper}`)
+        .maybeSingle();
 
-            if (dNum === upper || 
-                dNum === withPrefix || 
-                dId === upper || 
-                dId === raw.toUpperCase() ||
-                (dTrack && (dTrack === upper || dTrack.includes(upper))) ||
-                (cleanDigits.length >= 4 && dNum.includes(cleanDigits)) ||
-                (cleanDigits.length >= 10 && (dPhone.endsWith(cleanDigits) || cleanDigits.endsWith(dPhone)))) {
-              inMemoryOrders.unshift(data);
-              persistOrdersToDisk(inMemoryOrders);
-              return data;
-            }
+      if (directMatch) {
+        inMemoryOrders.unshift(directMatch);
+        persistOrdersToDisk(inMemoryOrders);
+        return directMatch;
+      }
+
+      // 2b. Broader query fallback
+      const { data: allOrders } = await supabase.from('orders').select('*').limit(100);
+      if (Array.isArray(allOrders)) {
+        for (const data of allOrders) {
+          const dNum = (data.order_number || '').toUpperCase();
+          const dId = (data.id || '').toUpperCase();
+          const dPhone = String(data.phone || '').replace(/[^0-9]/g, '');
+          const dTrack = (data.tracking_number || '').toUpperCase();
+
+          if (dNum === upper || 
+              dNum === withPrefix || 
+              dId === upper || 
+              dId === raw.toUpperCase() ||
+              (dTrack && (dTrack === upper || dTrack.includes(upper))) ||
+              (cleanDigits.length >= 4 && dNum.includes(cleanDigits)) ||
+              (cleanDigits.length >= 10 && (dPhone.endsWith(cleanDigits) || cleanDigits.endsWith(dPhone)))) {
+            inMemoryOrders.unshift(data);
+            persistOrdersToDisk(inMemoryOrders);
+            return data;
           }
         }
       }
     }
   } catch (err) {
-    console.warn("Firestore order lookup notice:", err);
+    console.warn("Supabase order lookup notice:", err);
   }
 
   return null;
@@ -948,7 +843,7 @@ app.get(["/api/orders/details", "/orders/details"], async (req: express.Request,
   const orderNumber = String(req.query.order || '').trim();
   if (!orderNumber) return res.status(400).json({ error: "Missing order number" });
 
-  const order = await findOrderInFirestoreOrMemory(orderNumber);
+  const order = await findOrderInSupabaseOrMemory(orderNumber);
   if (order) return res.json(order);
 
   return res.status(404).json({ error: "Order not found" });
@@ -959,7 +854,7 @@ app.get(["/api/orders/status", "/orders/status"], async (req, res) => {
   const orderNumber = String(req.query.order || '').trim();
   if (!orderNumber) return res.status(400).json({ error: "Missing order number" });
 
-  const order = await findOrderInFirestoreOrMemory(orderNumber);
+  const order = await findOrderInSupabaseOrMemory(orderNumber);
   if (!order) {
     return res.status(404).json({ 
       error: `Order "${orderNumber}" not found. Please double-check your order number (e.g. MT-1042).` 
@@ -1024,12 +919,15 @@ app.get(["/api/store/settings", "/store/settings"], async (req, res) => {
     let mergedSettings = { ...defaultSettings, ...currentDiskSettings, ...inMemorySettings };
 
     try {
-      const db = await initServerFirestore();
-      if (db && _fbCollection && _fbGetDocs) {
-        const snap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'store_settings')), 2000, null);
-        if (snap && !snap.empty) {
-          snap.forEach((d: any) => {
-            const item = d.data();
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: rows } = await withTimeoutServer(
+          supabase.from('store_settings').select('*'),
+          2000,
+          { data: null, error: null } as any
+        );
+        if (Array.isArray(rows) && rows.length > 0) {
+          rows.forEach((item: any) => {
             if (item) {
               if (item.key !== undefined && item.value !== undefined) {
                 mergedSettings[item.key] = item.value;
@@ -1045,7 +943,7 @@ app.get(["/api/store/settings", "/store/settings"], async (req, res) => {
         }
       }
     } catch (e) {
-      console.warn("Store settings fetch notice:", e);
+      console.warn("Supabase store settings fetch notice:", e);
     }
 
     return res.json(mergedSettings);
@@ -1094,26 +992,23 @@ app.get(["/api/products", "/products", "/api/products/"], async (req, res) => {
     let productsList: any[] = [];
 
     try {
-      const db = await initServerFirestore();
-      if (db && _fbCollection && _fbGetDocs) {
-        const snap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'products')), 2500, null);
-        if (snap && !snap.empty) {
-          snap.forEach((d: any) => {
-            const data = d.data();
-            if (data && typeof data === 'object') {
-              productsList.push(data);
-            }
-          });
-          if (productsList.length > 0) {
-            inMemoryProducts = productsList.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
-            try {
-              persistProductsToDisk(inMemoryProducts);
-            } catch (e) {}
-          }
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: sbProds } = await withTimeoutServer(
+          supabase.from('products').select('*'),
+          2500,
+          { data: null, error: null } as any
+        );
+        if (Array.isArray(sbProds) && sbProds.length > 0) {
+          productsList = sbProds;
+          inMemoryProducts = productsList.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
+          try {
+            persistProductsToDisk(inMemoryProducts);
+          } catch (e) {}
         }
       }
     } catch (e) {
-      console.warn("Firestore public products fetch notice:", e);
+      console.warn("Supabase public products fetch notice:", e);
     }
 
     if (productsList.length === 0) {
@@ -1259,21 +1154,20 @@ app.get("/api/admin/orders", adminAuth, async (req, res) => {
     if (key) ordersMap.set(key, o);
   });
 
-  // 2. Google Cloud Firestore
+  // 2. Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbCollection && _fbGetDocs) {
-      const snap = await _fbGetDocs(_fbCollection(db, 'orders'));
-      if (!snap.empty) {
-        snap.forEach((d: any) => {
-          const o = d.data();
+    const supabase = initServerSupabase();
+    if (supabase) {
+      const { data: sbOrders } = await supabase.from('orders').select('*');
+      if (Array.isArray(sbOrders) && sbOrders.length > 0) {
+        sbOrders.forEach((o: any) => {
           const key = o.order_number || o.id;
           if (key) ordersMap.set(key, o);
         });
       }
     }
-  } catch (fsErr) {
-    console.warn("Firestore fetch admin orders notice:", fsErr);
+  } catch (sbErr) {
+    console.warn("Supabase fetch admin orders notice:", sbErr);
   }
 
   const resultList = Array.from(ordersMap.values()).sort((a, b) => {
@@ -1308,33 +1202,31 @@ app.put("/api/admin/orders/:id/status", adminAuth, async (req, res) => {
 
   let updatedRecord = inMemoryOrders.find(o => o.id === id || o.order_number === id) || { id, ...updateData };
 
-  // Update in Google Firestore
+  // Update in Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbUpdateDoc) {
+    const supabase = initServerSupabase();
+    if (supabase) {
       const orderDocKey = updatedRecord.order_number || id;
-      await _fbUpdateDoc(_fbDoc(db, 'orders', orderDocKey), updateData);
+      await supabase.from('orders').update(updateData).or(`order_number.eq.${orderDocKey},id.eq.${id}`);
 
-      // If marked paid, deduct variant stock and update customer stats in Firestore
+      // If marked paid, deduct variant stock and update customer stats in Supabase
       if (status === 'paid' && updatedRecord.items) {
         await deductStockForOrderedItems(updatedRecord.items);
-        if (updatedRecord.phone && _fbGetDoc) {
+        if (updatedRecord.phone) {
           try {
-            const custRef = _fbDoc(db, 'customers', updatedRecord.phone);
-            const custSnap = await _fbGetDoc(custRef);
-            if (custSnap.exists()) {
-              const customer = custSnap.data();
-              await _fbUpdateDoc(custRef, {
+            const { data: customer } = await supabase.from('customers').select('*').eq('phone', updatedRecord.phone).maybeSingle();
+            if (customer) {
+              await supabase.from('customers').update({
                 total_spent: Number(customer.total_spent || 0) + Number(updatedRecord.total_amount || 0),
                 order_count: Number(customer.order_count || 0) + 1
-              });
+              }).eq('phone', updatedRecord.phone);
             }
           } catch (cErr) {}
         }
       }
     }
-  } catch (fsErr) {
-    console.warn("Firestore update order status notice:", fsErr);
+  } catch (sbErr) {
+    console.warn("Supabase update order status notice:", sbErr);
   }
 
   res.json(updatedRecord);
@@ -1346,15 +1238,15 @@ app.delete("/api/admin/orders/:id", adminAuth, async (req, res) => {
   inMemoryOrders = inMemoryOrders.filter(o => o.id !== id && o.order_number !== id);
   persistOrdersToDisk(inMemoryOrders);
 
-  // Delete from Google Firestore
+  // Delete from Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbDeleteDoc) {
+    const supabase = initServerSupabase();
+    if (supabase) {
       const docKey = target?.order_number || id;
-      await _fbDeleteDoc(_fbDoc(db, 'orders', docKey));
+      await supabase.from('orders').delete().or(`order_number.eq.${docKey},id.eq.${id}`);
     }
-  } catch (fsErr) {
-    console.warn("Firestore delete order notice:", fsErr);
+  } catch (sbErr) {
+    console.warn("Supabase delete order notice:", sbErr);
   }
 
   res.json({ success: true, message: "Order deleted successfully" });
@@ -1385,11 +1277,11 @@ app.post("/api/admin/orders/recover", adminAuth, async (req, res) => {
     inMemoryOrders.unshift(recoveredOrder);
     persistOrdersToDisk(inMemoryOrders);
 
-    // Save to Google Firestore
+    // Save to Supabase
     try {
-      const db = await initServerFirestore();
-      if (db && _fbDoc && _fbSetDoc) {
-        await _fbSetDoc(_fbDoc(db, 'orders', orderNum), recoveredOrder, { merge: true });
+      const supabase = initServerSupabase();
+      if (supabase) {
+        await supabase.from('orders').upsert(recoveredOrder, { onConflict: 'order_number' });
       }
     } catch (e) {}
 
@@ -1475,25 +1367,24 @@ function persistProductsToDisk(products: any[]) {
 const DEFAULT_PRODUCTS = loadDefaultProducts();
 let inMemoryProducts = [...DEFAULT_PRODUCTS].filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
 
-// Explicit endpoint to trigger pushing all catalog products to Firestore
-app.post(["/api/admin/products/push-firestore", "/api/products/sync-to-firestore"], async (req, res) => {
+// Explicit endpoint to trigger pushing all catalog products to Supabase
+app.post(["/api/admin/products/push-supabase", "/api/admin/products/push-firestore", "/api/products/sync-to-firestore"], async (req, res) => {
   try {
-    const db = await initServerFirestore();
-    if (!db || !_fbDoc || !_fbSetDoc) {
+    const supabase = initServerSupabase();
+    if (!supabase) {
       return res.status(400).json({ 
-        error: "Firestore not connected. Please ensure FIREBASE_PROJECT_ID is set in your environment variables.",
+        error: "Supabase not connected. Please verify SUPABASE_URL and SUPABASE_ANON_KEY.",
         products_ready_in_catalog: inMemoryProducts.length 
       });
     }
-    let count = 0;
-    for (const prod of inMemoryProducts) {
-      await withTimeoutServer(_fbSetDoc(_fbDoc(db, 'products', prod.id), prod, { merge: true }), 2000, null);
-      count++;
+    const { error } = await supabase.from('products').upsert(inMemoryProducts, { onConflict: 'id' });
+    if (error) {
+      return res.status(500).json({ error: error.message });
     }
     res.json({ 
       success: true, 
-      message: `Successfully pushed ${count} products to Firestore collection 'products'.`,
-      count 
+      message: `Successfully pushed ${inMemoryProducts.length} products to Supabase table 'products'.`,
+      count: inMemoryProducts.length 
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1504,28 +1395,23 @@ app.get("/api/admin/products", adminAuth, async (req, res) => {
   try {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     try {
-      const db = await initServerFirestore();
-      if (db && _fbCollection && _fbGetDocs) {
-        const snap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'products')), 2500, null);
-        if (snap && !snap.empty) {
-          const list: any[] = [];
-          snap.forEach((d: any) => {
-            const item = d.data();
-            if (item && typeof item === 'object') {
-              list.push(item);
-            }
-          });
-          if (list.length > 0) {
-            inMemoryProducts = list.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
-            try {
-              persistProductsToDisk(inMemoryProducts);
-            } catch (e) {}
-            return res.json(inMemoryProducts);
-          }
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: sbProds } = await withTimeoutServer(
+          supabase.from('products').select('*'),
+          2500,
+          { data: null, error: null } as any
+        );
+        if (Array.isArray(sbProds) && sbProds.length > 0) {
+          inMemoryProducts = sbProds.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
+          try {
+            persistProductsToDisk(inMemoryProducts);
+          } catch (e) {}
+          return res.json(inMemoryProducts);
         }
       }
     } catch (e) {
-      console.warn("Firestore admin products fetch notice:", e);
+      console.warn("Supabase admin products fetch notice:", e);
     }
     const filtered = inMemoryProducts.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
     return res.json(filtered);
@@ -1593,14 +1479,14 @@ app.post("/api/admin/products", adminAuth, async (req, res) => {
   inMemoryProducts.unshift(newProd);
   persistProductsToDisk(inMemoryProducts);
 
-  // Sync to Google Cloud Firestore
+  // Sync to Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbSetDoc) {
-      await _fbSetDoc(_fbDoc(db, 'products', newProd.id), newProd, { merge: true });
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('products').upsert(newProd, { onConflict: 'id' });
     }
   } catch (e) {
-    console.warn("Firestore product insert notice:", e);
+    console.warn("Supabase product insert notice:", e);
   }
 
   res.json(newProd);
@@ -1646,14 +1532,14 @@ app.put("/api/admin/products/:id", adminAuth, async (req, res) => {
   }
   persistProductsToDisk(inMemoryProducts);
 
-  // Sync to Google Cloud Firestore
+  // Sync to Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbSetDoc) {
-      await _fbSetDoc(_fbDoc(db, 'products', id), updatedProd, { merge: true });
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('products').upsert(updatedProd, { onConflict: 'id' });
     }
   } catch (e) {
-    console.warn("Firestore product update notice:", e);
+    console.warn("Supabase product update notice:", e);
   }
 
   res.json(updatedProd);
@@ -1682,17 +1568,14 @@ app.delete("/api/admin/products/:id", adminAuth, async (req, res) => {
   });
   persistProductsToDisk(inMemoryProducts);
 
-  // Delete from Google Cloud Firestore
+  // Delete from Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbDeleteDoc) {
-      await _fbDeleteDoc(_fbDoc(db, 'products', targetId)).catch(() => {});
-      if (targetSlug !== targetId) {
-        await _fbDeleteDoc(_fbDoc(db, 'products', targetSlug)).catch(() => {});
-      }
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('products').delete().or(`id.eq.${targetId},slug.eq.${targetSlug}`);
     }
   } catch (e) {
-    console.warn("Firestore product delete notice:", e);
+    console.warn("Supabase product delete notice:", e);
   }
 
   res.json({ success: true, deletedId: targetId });
@@ -1705,13 +1588,11 @@ app.get(["/api/categories", "/categories", "/api/categories/"], async (req, res)
     let catList: any[] = inMemoryCategories && inMemoryCategories.length > 0 ? [...inMemoryCategories] : [...DEFAULT_CATEGORIES];
     
     try {
-      const db = await initServerFirestore();
-      if (db && _fbCollection && _fbGetDocs) {
-        const snap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'categories')), 2000, null);
-        if (snap && !snap.empty) {
-          const fsCats: any[] = [];
-          snap.forEach((d: any) => fsCats.push(d.data()));
-          for (const sc of fsCats) {
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: sbCats } = await withTimeoutServer(supabase.from('categories').select('*'), 2000, { data: null, error: null } as any);
+        if (Array.isArray(sbCats) && sbCats.length > 0) {
+          for (const sc of sbCats) {
             const sSlug = (sc.slug || sc.name || '').toLowerCase().trim();
             const sId = (sc.id || '').toLowerCase().trim();
             if (!deletedCategorySlugs.has(sSlug) && !deletedCategorySlugs.has(sId) && !deletedCategorySlugs.has(`cat-${sSlug}`)) {
@@ -1723,7 +1604,7 @@ app.get(["/api/categories", "/categories", "/api/categories/"], async (req, res)
         }
       }
     } catch (e) {
-      console.warn("Firestore categories fetch notice:", e);
+      console.warn("Supabase categories fetch notice:", e);
     }
 
     // Exclude deleted categories
@@ -1751,13 +1632,11 @@ app.get("/api/admin/categories", adminAuth, async (req, res) => {
     let list: any[] = inMemoryCategories && inMemoryCategories.length > 0 ? [...inMemoryCategories] : [...DEFAULT_CATEGORIES];
     
     try {
-      const db = await initServerFirestore();
-      if (db && _fbCollection && _fbGetDocs) {
-        const snap = await withTimeoutServer(_fbGetDocs(_fbCollection(db, 'categories')), 2000, null);
-        if (snap && !snap.empty) {
-          const fsCats: any[] = [];
-          snap.forEach((d: any) => fsCats.push(d.data()));
-          for (const sc of fsCats) {
+      const supabase = initServerSupabase();
+      if (supabase) {
+        const { data: sbCats } = await withTimeoutServer(supabase.from('categories').select('*'), 2000, { data: null, error: null } as any);
+        if (Array.isArray(sbCats) && sbCats.length > 0) {
+          for (const sc of sbCats) {
             const sSlug = (sc.slug || sc.name || '').toLowerCase().trim();
             const sId = (sc.id || '').toLowerCase().trim();
             if (!deletedCategorySlugs.has(sSlug) && !deletedCategorySlugs.has(sId) && !deletedCategorySlugs.has(`cat-${sSlug}`)) {
@@ -1769,7 +1648,7 @@ app.get("/api/admin/categories", adminAuth, async (req, res) => {
         }
       }
     } catch (e) {
-      console.warn("Firestore admin categories fetch notice:", e);
+      console.warn("Supabase admin categories fetch notice:", e);
     }
 
     list = list.filter(c => {
@@ -1795,15 +1674,12 @@ app.post("/api/admin/categories/clear-all", adminAuth, async (req, res) => {
   persistCategoriesToDisk([]);
   
   try {
-    const db = await initServerFirestore();
-    if (db && _fbCollection && _fbGetDocs && _fbDoc && _fbDeleteDoc) {
-      const snap = await _fbGetDocs(_fbCollection(db, 'categories'));
-      for (const docSnap of snap.docs) {
-        await _fbDeleteDoc(_fbDoc(db, 'categories', docSnap.id));
-      }
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('categories').delete().neq('id', '___nonexistent___');
     }
   } catch (e) {
-    console.warn("Firestore categories clear notice:", e);
+    console.warn("Supabase categories clear notice:", e);
   }
 
   res.json({ success: true, categories: [] });
@@ -1827,14 +1703,14 @@ app.post("/api/admin/categories", adminAuth, async (req, res) => {
   inMemoryCategories.push(newCat);
   persistCategoriesToDisk(inMemoryCategories);
 
-  // Sync to Google Cloud Firestore
+  // Sync to Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbSetDoc) {
-      await _fbSetDoc(_fbDoc(db, 'categories', newCat.id), newCat);
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('categories').upsert(newCat, { onConflict: 'id' });
     }
   } catch (e) {
-    console.warn("Firestore category insert notice:", e);
+    console.warn("Supabase category insert notice:", e);
   }
 
   res.json(newCat);
@@ -1871,14 +1747,14 @@ app.put("/api/admin/categories/:id", adminAuth, async (req, res) => {
   }
   persistCategoriesToDisk(inMemoryCategories);
 
-  // Sync to Google Cloud Firestore
+  // Sync to Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbSetDoc) {
-      await _fbSetDoc(_fbDoc(db, 'categories', updatedCat.id), updatedCat);
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('categories').upsert(updatedCat, { onConflict: 'id' });
     }
   } catch (e) {
-    console.warn("Firestore category update notice:", e);
+    console.warn("Supabase category update notice:", e);
   }
 
   // Update products if slug changed
@@ -1918,14 +1794,14 @@ app.delete("/api/admin/categories/:id", adminAuth, async (req, res) => {
   });
   persistCategoriesToDisk(inMemoryCategories);
 
-  // Delete from Google Cloud Firestore
+  // Delete from Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbDeleteDoc) {
-      await _fbDeleteDoc(_fbDoc(db, 'categories', targetId));
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('categories').delete().or(`id.eq.${targetId},slug.eq.${targetSlug}`);
     }
   } catch (e) {
-    console.warn("Firestore category delete notice:", e);
+    console.warn("Supabase category delete notice:", e);
   }
 
   // Re-categorize products that had this category to 'general'
@@ -1945,13 +1821,11 @@ app.post("/api/admin/categories/reset", adminAuth, async (req, res) => {
   deletedCategorySlugs.clear();
   persistCategoriesToDisk(inMemoryCategories);
 
-  // Sync defaults to Google Cloud Firestore
+  // Sync defaults to Supabase
   try {
-    const db = await initServerFirestore();
-    if (db && _fbDoc && _fbSetDoc) {
-      for (const cat of DEFAULT_CATEGORIES) {
-        await _fbSetDoc(_fbDoc(db, 'categories', cat.id), cat);
-      }
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('categories').upsert(DEFAULT_CATEGORIES, { onConflict: 'id' });
     }
   } catch (e) {}
 
@@ -1959,19 +1833,17 @@ app.post("/api/admin/categories/reset", adminAuth, async (req, res) => {
 });
 
 app.get("/api/admin/customers", adminAuth, async (req, res) => {
-  // 1. Google Cloud Firestore
-  const db = await initServerFirestore();
-  if (db && _fbCollection && _fbGetDocs) {
-    try {
-      const snap = await _fbGetDocs(_fbCollection(db, 'customers'));
-      if (!snap.empty) {
-        const list: any[] = [];
-        snap.forEach((d: any) => list.push(d.data()));
+  // 1. Supabase
+  try {
+    const supabase = initServerSupabase();
+    if (supabase) {
+      const { data: list } = await supabase.from('customers').select('*');
+      if (Array.isArray(list) && list.length > 0) {
         return res.json(list);
       }
-    } catch (e) {
-      console.warn("Fetch admin customers error:", e);
     }
+  } catch (e) {
+    console.warn("Fetch admin customers error:", e);
   }
 
   // 2. Derive from in-memory orders
@@ -2001,26 +1873,22 @@ app.get("/api/admin/customers", adminAuth, async (req, res) => {
 
 app.put("/api/admin/customers/:phone/toggle-blacklist", adminAuth, async (req, res) => {
   const { phone } = req.params;
-  const db = await initServerFirestore();
-  if (db && _fbDoc && _fbGetDoc && _fbUpdateDoc) {
-    try {
-      const docRef = _fbDoc(db, 'customers', phone);
-      const snap = await _fbGetDoc(docRef);
-      if (snap.exists()) {
-        const cur = snap.data();
+  try {
+    const supabase = initServerSupabase();
+    if (supabase) {
+      const { data: cur } = await supabase.from('customers').select('*').eq('phone', phone).maybeSingle();
+      if (cur) {
         const updated = !cur.is_blacklisted;
-        await _fbUpdateDoc(docRef, { is_blacklisted: updated });
+        await supabase.from('customers').update({ is_blacklisted: updated }).eq('phone', phone);
         return res.json({ ...cur, is_blacklisted: updated });
       } else {
         const newCust = { phone, is_blacklisted: true, updated_at: new Date().toISOString() };
-        if (_fbSetDoc) {
-          await _fbSetDoc(docRef, newCust);
-        }
+        await supabase.from('customers').upsert(newCust, { onConflict: 'phone' });
         return res.json(newCust);
       }
-    } catch (e) {
-      console.warn("Toggle blacklist notice:", e);
     }
+  } catch (e) {
+    console.warn("Toggle blacklist notice:", e);
   }
   res.json({ phone, is_blacklisted: true });
 });
@@ -2032,16 +1900,16 @@ app.put("/api/admin/settings", adminAuth, async (req, res) => {
     persistSettingsToDisk(inMemorySettings);
   }
 
-  const db = await initServerFirestore();
-  if (db && _fbDoc && _fbSetDoc) {
-    try {
+  try {
+    const supabase = initServerSupabase();
+    if (supabase) {
       if (key) {
-        await _fbSetDoc(_fbDoc(db, 'store_settings', key), { key, value, updated_at: new Date().toISOString() }, { merge: true });
+        await supabase.from('store_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
       }
-      await _fbSetDoc(_fbDoc(db, 'store_settings', 'all'), { ...inMemorySettings, updated_at: new Date().toISOString() }, { merge: true });
-    } catch (e) {
-      console.warn("Firestore store_settings update error:", e);
+      await supabase.from('store_settings').upsert({ key: 'all', value: inMemorySettings, updated_at: new Date().toISOString() }, { onConflict: 'key' });
     }
+  } catch (e) {
+    console.warn("Supabase store_settings update error:", e);
   }
   
   res.json({ success: true, settings: inMemorySettings });
@@ -2052,21 +1920,21 @@ app.get(["/api/admin/promos", "/api/promos"], async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   let promoList: any[] = [];
 
-  const db = await initServerFirestore();
-  if (db && _fbDoc && _fbGetDoc) {
-    try {
-      const snap = await _fbGetDoc(_fbDoc(db, 'store_settings', 'promos'));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (Array.isArray(data.list) && data.list.length > 0) {
-          promoList = data.list;
+  try {
+    const supabase = initServerSupabase();
+    if (supabase) {
+      const { data: row } = await supabase.from('store_settings').select('*').eq('key', 'promos').maybeSingle();
+      if (row && row.value) {
+        const list = Array.isArray(row.value) ? row.value : row.value.list;
+        if (Array.isArray(list) && list.length > 0) {
+          promoList = list;
           inMemoryPromos = promoList;
           persistPromosToDisk(inMemoryPromos);
         }
       }
-    } catch (e) {
-      console.warn("Firestore promos fetch notice:", e);
     }
+  } catch (e) {
+    console.warn("Supabase promos fetch notice:", e);
   }
 
   if (promoList.length === 0) {
@@ -2083,16 +1951,17 @@ app.put("/api/admin/promos", adminAuth, async (req, res) => {
     persistPromosToDisk(inMemoryPromos);
   }
 
-  const db = await initServerFirestore();
-  if (db && _fbDoc && _fbSetDoc) {
-    try {
-      await _fbSetDoc(_fbDoc(db, 'store_settings', 'promos'), {
-        list: inMemoryPromos,
+  try {
+    const supabase = initServerSupabase();
+    if (supabase) {
+      await supabase.from('store_settings').upsert({
+        key: 'promos',
+        value: { list: inMemoryPromos },
         updated_at: new Date().toISOString()
-      }, { merge: true });
-    } catch (e) {
-      console.warn("Firestore save promos error:", e);
+      }, { onConflict: 'key' });
     }
+  } catch (e) {
+    console.warn("Supabase save promos error:", e);
   }
 
   res.json({ success: true, promos: inMemoryPromos });

@@ -1,5 +1,4 @@
-import { getGoogleFirestore, syncUnsyncedOrders } from './googleDatabase';
-import { collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, query, orderBy, limit } from 'firebase/firestore';
+import { getSupabase, syncUnsyncedOrders } from './supabaseClient';
 import { broadcastSync } from './syncChannel';
 
 function withTimeout<T>(promise: Promise<T>, ms = 3000, fallbackVal: T): Promise<T> {
@@ -28,7 +27,7 @@ export async function fetchAllOrders(): Promise<any[]> {
   // Run background auto-sync for any pending local orders
   syncUnsyncedOrders().catch(() => {});
 
-  // 1. Fetch from Express Backend API (reads from disk + Firestore + Supabase)
+  // 1. Fetch from Express Backend API (reads from disk + Supabase)
   try {
     const res = await withTimeout(fetch('/api/admin/orders', {
       headers: getAdminAuthHeaders(),
@@ -47,24 +46,25 @@ export async function fetchAllOrders(): Promise<any[]> {
     console.warn('API admin orders fetch notice:', err);
   }
 
-  // 2. Fetch directly from Google Cloud Firestore with timeout
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      const q = query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(150));
-      const snap = await withTimeout(getDocs(q), 3000, null as any);
-      if (snap) {
-        snap.forEach((d: any) => {
-          const order = d.data();
-          const key = order.order_number || order.id;
-          if (key && !ordersMap.has(key)) {
-            ordersMap.set(key, order);
-          }
-        });
-      }
-    } catch (fsErr) {
-      console.warn('Firestore admin orders fetch notice:', fsErr);
+  // 2. Fetch directly from Supabase with timeout
+  try {
+    const client = getSupabase();
+    const { data: sbOrders, error } = await client
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(150);
+
+    if (!error && Array.isArray(sbOrders)) {
+      sbOrders.forEach((order: any) => {
+        const key = order.order_number || order.id;
+        if (key && !ordersMap.has(key)) {
+          ordersMap.set(key, order);
+        }
+      });
     }
+  } catch (sbErr) {
+    console.warn('Supabase admin orders fetch notice:', sbErr);
   }
 
   // 3. Fallback / Merge from LocalStorage
@@ -98,149 +98,149 @@ export async function updateOrderStatus(id: string, status: string, additionalDa
 
   // 1. Express Backend
   try {
-    await fetch(`/api/admin/orders/${encodeURIComponent(id)}/status`, {
+    const res = await withTimeout(fetch(`/api/admin/orders/${encodeURIComponent(id)}/status`, {
       method: 'PUT',
       headers: getAdminAuthHeaders(),
       credentials: 'include',
       body: JSON.stringify(updateData)
-    });
+    }), 3500, null as any);
+    if (res && res.ok) {
+      const updated = await res.json();
+      broadcastSync({ type: 'ORDERS_UPDATED', timestamp: Date.now() });
+      return updated;
+    }
   } catch (e) {
-    console.warn('Backend update status notice:', e);
+    console.warn('Backend order update notice:', e);
   }
 
-  // 2. Google Cloud Firestore
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await updateDoc(doc(db, 'orders', id), updateData);
-    } catch (e) {}
+  // 2. Direct Supabase update
+  try {
+    const client = getSupabase();
+    await client
+      .from('orders')
+      .update(updateData)
+      .or(`id.eq.${id},order_number.eq.${id}`);
+  } catch (sbErr) {
+    console.warn('Supabase order update notice:', sbErr);
   }
 
-  // 3. LocalStorage
+  // 3. Update Local Storage
   try {
     const localStr = localStorage.getItem('matilda_local_orders');
     if (localStr) {
-      let localArr = JSON.parse(localStr);
-      if (Array.isArray(localArr)) {
-        localArr = localArr.map((o: any) => (o.id === id || o.order_number === id) ? { ...o, ...updateData } : o);
-        localStorage.setItem('matilda_local_orders', JSON.stringify(localArr));
+      const orders = JSON.parse(localStr);
+      if (Array.isArray(orders)) {
+        const updated = orders.map((o: any) => {
+          if (o.id === id || o.order_number === id) {
+            return { ...o, ...updateData };
+          }
+          return o;
+        });
+        localStorage.setItem('matilda_local_orders', JSON.stringify(updated));
       }
     }
   } catch (e) {}
 
-  return updateData;
+  broadcastSync({ type: 'ORDERS_UPDATED', timestamp: Date.now() });
+  return { id, ...updateData };
 }
 
-export async function deleteOrderRecord(id: string): Promise<boolean> {
+export async function deleteAdminOrder(id: string): Promise<boolean> {
   // 1. Express Backend
   try {
-    await fetch(`/api/admin/orders/${encodeURIComponent(id)}`, {
+    await withTimeout(fetch(`/api/admin/orders/${encodeURIComponent(id)}`, {
       method: 'DELETE',
       headers: getAdminAuthHeaders(),
       credentials: 'include'
-    });
+    }), 3500, null as any);
   } catch (e) {
-    console.warn('Backend delete order notice:', e);
+    console.warn('Backend order delete notice:', e);
   }
 
-  // 2. Google Cloud Firestore
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await deleteDoc(doc(db, 'orders', id));
-    } catch (e) {}
+  // 2. Supabase delete
+  try {
+    const client = getSupabase();
+    await client
+      .from('orders')
+      .delete()
+      .or(`id.eq.${id},order_number.eq.${id}`);
+  } catch (sbErr) {
+    console.warn('Supabase order delete notice:', sbErr);
   }
 
-  // 3. LocalStorage
+  // 3. Local Storage update
   try {
     const localStr = localStorage.getItem('matilda_local_orders');
     if (localStr) {
-      let localArr = JSON.parse(localStr);
-      if (Array.isArray(localArr)) {
-        localArr = localArr.filter((o: any) => o.id !== id && o.order_number !== id);
-        localStorage.setItem('matilda_local_orders', JSON.stringify(localArr));
+      const orders = JSON.parse(localStr);
+      if (Array.isArray(orders)) {
+        const filtered = orders.filter((o: any) => o.id !== id && o.order_number !== id);
+        localStorage.setItem('matilda_local_orders', JSON.stringify(filtered));
       }
     }
   } catch (e) {}
 
+  broadcastSync({ type: 'ORDERS_UPDATED', timestamp: Date.now() });
   return true;
 }
 
-// --- Analytics API ---
-export async function fetchAnalyticsData(): Promise<any> {
+export async function pushOrdersToCloud(): Promise<{ success: boolean; count: number; message: string }> {
   try {
-    const res = await fetch('/api/admin/analytics', {
+    const res = await fetch('/api/admin/orders/push-firestore', {
+      method: 'POST',
       headers: getAdminAuthHeaders(),
       credentials: 'include'
     });
     if (res.ok) {
-      const data = await res.json();
-      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-        return data;
+      return await res.json();
+    }
+  } catch (e) {}
+
+  // Push local orders directly to Supabase
+  try {
+    const client = getSupabase();
+    const localStr = localStorage.getItem('matilda_local_orders');
+    if (localStr) {
+      const orders = JSON.parse(localStr);
+      if (Array.isArray(orders) && orders.length > 0) {
+        for (const order of orders) {
+          await client.from('orders').upsert({
+            ...order,
+            synced: true
+          }, { onConflict: 'order_number' });
+        }
+        return { success: true, count: orders.length, message: `Synced ${orders.length} orders directly to Supabase.` };
       }
     }
-  } catch (e) {
-    console.warn('Analytics API notice:', e);
+  } catch (sbErr: any) {
+    return { success: false, count: 0, message: sbErr.message || 'Supabase sync failed' };
   }
 
-  // Fallback calculation from orders
-  const orders = await fetchAllOrders();
-  const paidOrders = orders.filter(o => o.status === 'paid' || o.status === 'shipped' || o.status === 'delivered');
-  const grossRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
-  const aov = paidOrders.length ? Math.round(grossRevenue / paidOrders.length) : 0;
-
-  const recentOrdersMap: Record<string, number> = {};
-  paidOrders.forEach((o: any) => {
-    const date = new Date(o.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    recentOrdersMap[date] = (recentOrdersMap[date] || 0) + Number(o.total_amount || 0);
-  });
-
-  const recentOrders = Object.keys(recentOrdersMap).map(date => ({
-    date,
-    revenue: recentOrdersMap[date]
-  })).slice(-7);
-
-  return {
-    grossRevenue,
-    totalPaidOrders: paidOrders.length,
-    aov,
-    recentOrders,
-    latestTransactions: orders.slice(0, 15)
-  };
+  return { success: true, count: 0, message: 'All orders are synchronized.' };
 }
 
-// --- Deleted Products Registry Helper ---
+// --- Deleted Products Local Set ---
 export function getLocalDeletedProductIds(): Set<string> {
   try {
-    const raw = localStorage.getItem('matilda_deleted_products');
-    if (raw) {
-      const arr = JSON.parse(raw);
+    const saved = localStorage.getItem('matilda_deleted_products');
+    if (saved) {
+      const arr = JSON.parse(saved);
       if (Array.isArray(arr)) return new Set(arr);
     }
   } catch (e) {}
-  return new Set();
+  return new Set<string>();
 }
 
-export function recordDeletedProductId(id: string, slug?: string) {
+export function recordDeletedProductId(id?: string, slug?: string) {
   try {
     const current = getLocalDeletedProductIds();
     if (id) current.add(id);
     if (slug) current.add(slug);
     localStorage.setItem('matilda_deleted_products', JSON.stringify(Array.from(current)));
-
-    // Clean up local products cache
-    const prodStr = localStorage.getItem('matilda_products');
-    if (prodStr) {
-      const prods = JSON.parse(prodStr);
-      if (Array.isArray(prods)) {
-        const filtered = prods.filter((p: any) => p.id !== id && (!slug || p.slug !== slug));
-        localStorage.setItem('matilda_products', JSON.stringify(filtered));
-      }
-    }
   } catch (e) {}
 }
 
-export function unmarkDeletedProductId(id: string, slug?: string) {
+export function unmarkDeletedProductId(id?: string, slug?: string) {
   try {
     const current = getLocalDeletedProductIds();
     if (id) current.delete(id);
@@ -272,18 +272,23 @@ export async function fetchPublicProducts(collectionName?: string, category?: st
     console.warn('Public products fetch notice:', e);
   }
 
-  // 2. Google Cloud Firestore fallback
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      const snapshot = await withTimeout(getDocs(collection(db, 'products')), 3000, null as any);
-      if (snapshot) {
-        const cloudList = snapshot.docs
-          .map((doc: any) => ({ id: doc.id, ...doc.data() }))
-          .filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
-        return cloudList;
-      }
-    } catch (e) {}
+  // 2. Direct Supabase fallback
+  try {
+    const client = getSupabase();
+    let queryBuilder = client.from('products').select('*');
+    if (collectionName && collectionName !== 'all') {
+      queryBuilder = queryBuilder.ilike('collection', `%${collectionName}%`);
+    }
+    if (category && category !== 'all') {
+      queryBuilder = queryBuilder.ilike('category', `%${category}%`);
+    }
+
+    const { data: sbProds, error } = await queryBuilder;
+    if (!error && Array.isArray(sbProds)) {
+      return sbProds.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+    }
+  } catch (sbErr) {
+    console.warn('Supabase public products fetch notice:', sbErr);
   }
 
   return [];
@@ -335,14 +340,12 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
     console.warn('Backend product save notice:', e);
   }
 
-  // Google Cloud Firestore sync
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await withTimeout(setDoc(doc(db, 'products', prod.id), prod, { merge: true }), 3000, null as any);
-    } catch (e) {
-      console.warn('Firestore product save notice:', e);
-    }
+  // Direct Supabase upsert
+  try {
+    const client = getSupabase();
+    await client.from('products').upsert(prod, { onConflict: 'id' });
+  } catch (sbErr) {
+    console.warn('Supabase product save notice:', sbErr);
   }
 
   broadcastSync({ type: 'CATALOGUE_UPDATED', timestamp: Date.now() });
@@ -363,17 +366,15 @@ export async function deleteAdminProduct(id: string, slug?: string): Promise<boo
     console.warn('Backend product delete notice:', e);
   }
 
-  // Google Cloud Firestore delete
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await withTimeout(deleteDoc(doc(db, 'products', id)), 3000, null as any);
-      if (slug && slug !== id) {
-        await withTimeout(deleteDoc(doc(db, 'products', slug)).catch(() => {}), 3000, null as any);
-      }
-    } catch (e) {
-      console.warn('Firestore product delete notice:', e);
+  // Direct Supabase delete
+  try {
+    const client = getSupabase();
+    await client.from('products').delete().or(`id.eq.${id},slug.eq.${id}`);
+    if (slug && slug !== id) {
+      await client.from('products').delete().eq('slug', slug);
     }
+  } catch (sbErr) {
+    console.warn('Supabase product delete notice:', sbErr);
   }
 
   broadcastSync({ type: 'CATALOGUE_UPDATED', timestamp: Date.now() });
@@ -397,17 +398,15 @@ export async function fetchPublicCategories(): Promise<any[]> {
     console.warn('Public categories fetch notice:', e);
   }
 
-  // 2. Google Cloud Firestore fallback
+  // 2. Direct Supabase fallback
   if (cats === null) {
-    const db = getGoogleFirestore();
-    if (db) {
-      try {
-        const snap = await getDocs(collection(db, 'categories'));
-        if (!snap.empty) {
-          cats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        }
-      } catch (e) {}
-    }
+    try {
+      const client = getSupabase();
+      const { data: sbCats, error } = await client.from('categories').select('*');
+      if (!error && Array.isArray(sbCats) && sbCats.length > 0) {
+        cats = sbCats;
+      }
+    } catch (e) {}
   }
 
   // 3. LocalStorage fallback
@@ -483,14 +482,12 @@ export async function saveAdminCategory(category: any, isEdit: boolean): Promise
     console.warn('Backend category save notice:', e);
   }
 
-  // 2. Google Cloud Firestore
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await setDoc(doc(db, 'categories', dbCat.id), dbCat, { merge: true });
-    } catch (e) {
-      console.warn('Firestore category save notice:', e);
-    }
+  // 2. Direct Supabase
+  try {
+    const client = getSupabase();
+    await client.from('categories').upsert(dbCat, { onConflict: 'id' });
+  } catch (sbErr) {
+    console.warn('Supabase category save notice:', sbErr);
   }
 
   broadcastSync({ type: 'CATEGORIES_UPDATED', timestamp: Date.now() });
@@ -512,14 +509,12 @@ export async function deleteAdminCategory(id: string, slug?: string): Promise<bo
     console.warn('Backend category delete notice:', e);
   }
 
-  // 2. Google Cloud Firestore
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await deleteDoc(doc(db, 'categories', id));
-    } catch (e) {
-      console.warn('Firestore category delete notice:', e);
-    }
+  // 2. Direct Supabase delete
+  try {
+    const client = getSupabase();
+    await client.from('categories').delete().or(`id.eq.${id},slug.eq.${cleanSlug}`);
+  } catch (sbErr) {
+    console.warn('Supabase category delete notice:', sbErr);
   }
 
   // 3. Clear from LocalStorage fallback
@@ -543,15 +538,10 @@ export async function resetAdminCategories(): Promise<any[]> {
     localStorage.removeItem('matilda_categories');
   } catch (e) {}
 
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      const snap = await getDocs(collection(db, 'categories'));
-      for (const d of snap.docs) {
-        await deleteDoc(d.ref);
-      }
-    } catch (e) {}
-  }
+  try {
+    const client = getSupabase();
+    await client.from('categories').delete().neq('id', '___non_existent___');
+  } catch (e) {}
 
   try {
     await fetch('/api/admin/categories/clear-all', {
@@ -578,15 +568,13 @@ export async function fetchAdminCustomers(): Promise<any[]> {
     }
   } catch (e) {}
 
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      const snap = await getDocs(collection(db, 'customers'));
-      if (!snap.empty) {
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      }
-    } catch (e) {}
-  }
+  try {
+    const client = getSupabase();
+    const { data: sbCustomers, error } = await client.from('customers').select('*');
+    if (!error && Array.isArray(sbCustomers)) {
+      return sbCustomers;
+    }
+  } catch (e) {}
 
   return [];
 }
@@ -603,20 +591,15 @@ export async function toggleCustomerBlacklist(phone: string): Promise<any> {
     }
   } catch (e) {}
 
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      const custRef = doc(db, 'customers', phone);
-      const snap = await getDocs(query(collection(db, 'customers')));
-      // Toggle in Firestore
-      const found = snap.docs.find(d => d.id === phone || d.data().phone === phone);
-      if (found) {
-        const isBlacklisted = !found.data().is_blacklisted;
-        await updateDoc(found.ref, { is_blacklisted: isBlacklisted });
-        return { ...found.data(), is_blacklisted: isBlacklisted };
-      }
-    } catch (e) {}
-  }
+  try {
+    const client = getSupabase();
+    const { data: found } = await client.from('customers').select('*').eq('phone', phone).maybeSingle();
+    if (found) {
+      const newStatus = !found.is_blacklisted;
+      await client.from('customers').update({ is_blacklisted: newStatus }).eq('phone', phone);
+      return { ...found, is_blacklisted: newStatus };
+    }
+  } catch (e) {}
 
   return null;
 }
@@ -634,16 +617,18 @@ export async function fetchAdminPromos(): Promise<any[]> {
     }
   } catch (e) {}
 
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      const snap = await getDoc(doc(db, 'store_settings', 'promos'));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (Array.isArray(data.list)) return data.list;
-      }
-    } catch (e) {}
-  }
+  try {
+    const client = getSupabase();
+    const { data: settingsData } = await client
+      .from('store_settings')
+      .select('promo_codes')
+      .eq('id', 'promos')
+      .maybeSingle();
+
+    if (settingsData && Array.isArray(settingsData.promo_codes)) {
+      return settingsData.promo_codes;
+    }
+  } catch (e) {}
 
   try {
     const local = localStorage.getItem('matilda_promos');
@@ -674,15 +659,14 @@ export async function saveAdminPromos(promos: any[]): Promise<boolean> {
     });
   } catch (e) {}
 
-  const db = getGoogleFirestore();
-  if (db) {
-    try {
-      await setDoc(doc(db, 'store_settings', 'promos'), {
-        list: promos,
-        updated_at: new Date().toISOString()
-      }, { merge: true });
-    } catch (e) {}
-  }
+  try {
+    const client = getSupabase();
+    await client.from('store_settings').upsert({
+      id: 'promos',
+      promo_codes: promos,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  } catch (e) {}
 
   try {
     localStorage.setItem('matilda_promos', JSON.stringify(promos));
@@ -691,3 +675,5 @@ export async function saveAdminPromos(promos: any[]): Promise<boolean> {
   broadcastSync({ type: 'PROMOS_UPDATED', timestamp: Date.now() });
   return true;
 }
+
+export const deleteOrderRecord = deleteAdminOrder;

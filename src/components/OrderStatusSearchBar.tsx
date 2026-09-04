@@ -182,7 +182,7 @@ export const OrderStatusSearchBar: React.FC<{
         <div className="flex items-center justify-between px-2 pt-2 text-[10px] text-[var(--text-muted)] tracking-wide">
           <span className="flex items-center gap-1">
             <Sparkles className="w-2.5 h-2.5 text-[var(--border-maroon)]" />
-            live Firestore tracking
+            live Supabase cloud tracking
           </span>
           <span>check your order confirmation SMS or receipt</span>
         </div>

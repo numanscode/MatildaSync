@@ -3,8 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useCollection } from '../context/CollectionContext';
 import { ShoppingBag, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getGoogleFirestore } from '../lib/googleDatabase';
-import { doc, getDoc } from 'firebase/firestore';
+import { getSupabase } from '../lib/supabaseClient';
 import { subscribeToSync } from '../lib/syncChannel';
 import { OrderStatusPanel } from './OrderStatusPanel';
 
@@ -37,16 +36,14 @@ export const Navbar: React.FC = () => {
       }
     } catch (e) {}
 
-    // 2. Try Google Firestore
+    // 2. Try Supabase direct query
     if (!settingsObj.sale_active && !settingsObj.sale_text) {
       try {
-        const db = getGoogleFirestore();
-        if (db) {
-          const snap = await getDoc(doc(db, 'store_settings', 'sale'));
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data) settingsObj = data;
-          }
+        const client = getSupabase();
+        const { data: storeData } = await client.from('store_settings').select('*');
+        if (Array.isArray(storeData)) {
+          const found = storeData.find(s => s.id === 'sale' || s.id === 'current');
+          if (found) settingsObj = found;
         }
       } catch (e) {}
     }

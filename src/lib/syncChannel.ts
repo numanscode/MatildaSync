@@ -3,7 +3,8 @@ export type SyncEvent =
   | { type: 'CATALOGUE_UPDATED'; timestamp: number }
   | { type: 'SETTINGS_UPDATED'; timestamp: number }
   | { type: 'CATEGORIES_UPDATED'; timestamp: number }
-  | { type: 'PROMOS_UPDATED'; timestamp: number };
+  | { type: 'PROMOS_UPDATED'; timestamp: number }
+  | { type: 'ORDERS_UPDATED'; timestamp: number };
 
 let channel: BroadcastChannel | null = null;
 try {
@@ -31,6 +32,8 @@ export function broadcastSync(event: SyncEvent) {
       window.dispatchEvent(new CustomEvent('matilda-catalogue-updated', { detail: event }));
     } else if (event.type === 'PROMOS_UPDATED') {
       window.dispatchEvent(new CustomEvent('matilda-promos-updated', { detail: event }));
+    } else if (event.type === 'ORDERS_UPDATED') {
+      window.dispatchEvent(new CustomEvent('matilda-orders-updated', { detail: event }));
     }
   }
 }
@@ -51,6 +54,7 @@ export function subscribeToSync(onEvent: (event: SyncEvent) => void): () => void
       if (e.type === 'matilda-settings-updated') onEvent({ type: 'SETTINGS_UPDATED', timestamp: Date.now() });
       if (e.type === 'matilda-categories-updated') onEvent({ type: 'CATEGORIES_UPDATED', timestamp: Date.now() });
       if (e.type === 'matilda-promos-updated') onEvent({ type: 'PROMOS_UPDATED', timestamp: Date.now() });
+      if (e.type === 'matilda-orders-updated') onEvent({ type: 'ORDERS_UPDATED', timestamp: Date.now() });
     }
   };
 

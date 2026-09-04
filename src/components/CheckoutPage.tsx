@@ -3,8 +3,7 @@ import { useCollection } from '../context/CollectionContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Check, UploadCloud, Truck, Loader2, QrCode, Banknote, ShieldCheck } from 'lucide-react';
 import { lookupPincode, calculateDelhiveryShipping, ShippingCalculation } from '../lib/shipping';
-import { submitOrder, getGoogleFirestore } from '../lib/googleDatabase';
-import { doc, getDoc } from 'firebase/firestore';
+import { submitOrder, getSupabase } from '../lib/supabaseClient';
 import { motion } from 'motion/react';
 
 export const CheckoutPage: React.FC = () => {
@@ -70,27 +69,22 @@ export const CheckoutPage: React.FC = () => {
         }
       } catch (e) {}
 
-      // Google Cloud Firestore fallback
+      // Direct Supabase fallback
       try {
-        const db = getGoogleFirestore();
-        if (db) {
-          const saleSnap = await getDoc(doc(db, 'store_settings', 'sale'));
-          if (saleSnap.exists()) {
-            const data = saleSnap.data();
-            if (data?.sale_active === 'true' || data?.sale_active === true) {
-              setSaleActive(true);
-              setSaleDiscountPercent(Number(data.sale_discount_percent) || 0);
-              if (data.sale_type) setSaleType(data.sale_type);
-              if (data.sale_discount_amount) setSaleDiscountAmount(Number(data.sale_discount_amount) || 0);
-            }
+        const client = getSupabase();
+        const { data: storeData } = await client.from('store_settings').select('*');
+        if (Array.isArray(storeData)) {
+          const saleRow = storeData.find(s => s.id === 'sale' || s.id === 'current');
+          if (saleRow && (saleRow.sale_active === 'true' || saleRow.sale_active === true)) {
+            setSaleActive(true);
+            setSaleDiscountPercent(Number(saleRow.sale_discount_percent) || 0);
+            if (saleRow.sale_type) setSaleType(saleRow.sale_type);
+            if (saleRow.sale_discount_amount) setSaleDiscountAmount(Number(saleRow.sale_discount_amount) || 0);
           }
-          const promoSnap = await getDoc(doc(db, 'store_settings', 'promos'));
-          if (promoSnap.exists()) {
-            const pData = promoSnap.data()?.value;
-            if (pData) {
-              const parsed = typeof pData === 'string' ? JSON.parse(pData) : pData;
-              setAvailablePromos(parsed);
-            }
+          const promoRow = storeData.find(s => s.id === 'promos');
+          if (promoRow && promoRow.promo_codes) {
+            const parsed = typeof promoRow.promo_codes === 'string' ? JSON.parse(promoRow.promo_codes) : promoRow.promo_codes;
+            setAvailablePromos(parsed);
           }
         }
       } catch (e) {}

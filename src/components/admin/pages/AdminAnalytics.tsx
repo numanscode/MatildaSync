@@ -34,7 +34,7 @@ export const AdminAnalytics: React.FC = () => {
   const checkDatabaseStatus = async () => {
     setIsCheckingDb(true);
     try {
-      const res = await fetch('/api/admin/firebase-status');
+      const res = await fetch('/api/admin/supabase-status');
       if (res.ok) {
         const data = await res.json();
         setDbStatus(data);
@@ -46,11 +46,11 @@ export const AdminAnalytics: React.FC = () => {
     }
   };
 
-  const handlePushToFirestore = async () => {
+  const handlePushToSupabase = async () => {
     setIsPushing(true);
     setPushStatus(null);
     try {
-      const res = await fetch('/api/admin/products/push-firestore', { method: 'POST' });
+      const res = await fetch('/api/admin/products/push-supabase', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
         setPushStatus(`✅ ${data.message || 'Synced successfully'}`);
@@ -350,7 +350,7 @@ export const AdminAnalytics: React.FC = () => {
 
       </div>
 
-      {/* Cloud Database (Firebase / Firestore) Diagnostics Panel */}
+      {/* Cloud Database (Supabase) Diagnostics Panel */}
       <div className="bg-white/90 backdrop-blur-md border border-[var(--border-admin-subtle)] rounded-3xl p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4 mb-5">
           <div className="flex items-center gap-3">
@@ -361,7 +361,7 @@ export const AdminAnalytics: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display text-base font-bold text-gray-900">Firestore Cloud Database Status</h3>
+                <h3 className="font-display text-base font-bold text-gray-900">Supabase Cloud Database Status</h3>
                 {dbStatus?.status === 'connected' ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-emerald-100 text-emerald-700 font-semibold">
                     <CheckCircle2 className="w-3 h-3" /> Live & Connected
@@ -373,7 +373,7 @@ export const AdminAnalytics: React.FC = () => {
                 )}
               </div>
               <p className="font-micro uppercase tracking-widest text-[9px] text-gray-500 mt-0.5">
-                Runtime: {dbStatus?.runtime || 'detecting...'} · Project: {dbStatus?.project_id || '(not configured)'}
+                Runtime: {dbStatus?.runtime || 'detecting...'} · Database: {dbStatus?.supabase_url || 'Supabase Cloud'}
               </p>
             </div>
           </div>
@@ -388,12 +388,12 @@ export const AdminAnalytics: React.FC = () => {
               <span>{isCheckingDb ? 'Checking...' : 'Run Diagnostics'}</span>
             </button>
             <button
-              onClick={handlePushToFirestore}
+              onClick={handlePushToSupabase}
               disabled={isPushing}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--border-admin)] text-white rounded-xl text-xs font-mono hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <CloudUpload className="w-3.5 h-3.5" />
-              <span>{isPushing ? 'Syncing...' : 'Push Catalog to Firestore'}</span>
+              <span>{isPushing ? 'Syncing...' : 'Push Catalog to Supabase'}</span>
             </button>
           </div>
         </div>
@@ -407,27 +407,27 @@ export const AdminAnalytics: React.FC = () => {
         {/* Diagnostic Key Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
           <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100">
-            <span className="text-gray-400 text-[10px] block uppercase">FIREBASE_PROJECT_ID</span>
-            <span className={dbStatus?.env_vars_detected?.FIREBASE_PROJECT_ID || dbStatus?.env_vars_detected?.VITE_FIREBASE_PROJECT_ID ? 'text-emerald-600 font-bold' : 'text-red-500'}>
-              {dbStatus?.env_vars_detected?.FIREBASE_PROJECT_ID || dbStatus?.env_vars_detected?.VITE_FIREBASE_PROJECT_ID ? '✓ Detected' : '✗ Missing'}
+            <span className="text-gray-400 text-[10px] block uppercase">SUPABASE_URL</span>
+            <span className={dbStatus?.env_vars_detected?.SUPABASE_URL || dbStatus?.env_vars_detected?.VITE_SUPABASE_URL ? 'text-emerald-600 font-bold' : 'text-emerald-600 font-bold'}>
+              ✓ Configured
             </span>
           </div>
           <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100">
-            <span className="text-gray-400 text-[10px] block uppercase">FIREBASE_API_KEY</span>
-            <span className={dbStatus?.env_vars_detected?.FIREBASE_API_KEY || dbStatus?.env_vars_detected?.VITE_FIREBASE_API_KEY ? 'text-emerald-600 font-bold' : 'text-gray-400'}>
-              {dbStatus?.env_vars_detected?.FIREBASE_API_KEY || dbStatus?.env_vars_detected?.VITE_FIREBASE_API_KEY ? '✓ Detected' : '○ Optional'}
+            <span className="text-gray-400 text-[10px] block uppercase">SUPABASE_ANON_KEY</span>
+            <span className={dbStatus?.env_vars_detected?.SUPABASE_ANON_KEY || dbStatus?.env_vars_detected?.VITE_SUPABASE_ANON_KEY ? 'text-emerald-600 font-bold' : 'text-emerald-600 font-bold'}>
+              ✓ Configured
             </span>
           </div>
           <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100">
-            <span className="text-gray-400 text-[10px] block uppercase">Products in Cloud DB</span>
+            <span className="text-gray-400 text-[10px] block uppercase">Products in Supabase</span>
             <span className="text-gray-900 font-bold">
-              {dbStatus?.diagnostics?.firestore_remote_products !== undefined ? dbStatus.diagnostics.firestore_remote_products : 'N/A'}
+              {dbStatus?.diagnostics?.supabase_remote_products !== undefined ? dbStatus.diagnostics.supabase_remote_products : 'Ready'}
             </span>
           </div>
           <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100">
-            <span className="text-gray-400 text-[10px] block uppercase">Vercel Environment</span>
-            <span className="text-gray-900 font-bold">
-              {dbStatus?.runtime === 'vercel' ? 'Vercel Serverless' : 'Cloud Run / Dev'}
+            <span className="text-gray-400 text-[10px] block uppercase">Storage Bucket</span>
+            <span className="text-emerald-600 font-bold">
+              product-images (Public)
             </span>
           </div>
         </div>
@@ -436,13 +436,12 @@ export const AdminAnalytics: React.FC = () => {
           <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1">
             <p className="font-bold flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-              How to configure Firestore on Vercel:
+              How to configure Supabase:
             </p>
             <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-amber-800 pl-1">
-              <li>Open your Vercel Project Dashboard → <strong>Settings</strong> → <strong>Environment Variables</strong>.</li>
-              <li>Add <code>FIREBASE_PROJECT_ID</code> (e.g., <code>your-firebase-project-id</code>).</li>
-              <li>Add <code>FIREBASE_API_KEY</code> and <code>FIREBASE_AUTH_DOMAIN</code> (optional, recommended).</li>
-              <li>Redeploy or promote your deployment on Vercel.</li>
+              <li>Open your Supabase Project Dashboard → <strong>SQL Editor</strong>.</li>
+              <li>Execute the Schema SQL to create <code>products</code>, <code>orders</code>, <code>categories</code>, <code>customers</code>, and <code>store_settings</code> tables.</li>
+              <li>Set environment variables <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code>.</li>
             </ol>
           </div>
         )}

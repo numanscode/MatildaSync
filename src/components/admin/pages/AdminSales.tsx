@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Megaphone, Check, AlertCircle } from 'lucide-react';
-import { getGoogleFirestore } from '../../../lib/googleDatabase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { getSupabase } from '../../../lib/supabaseClient';
 import { getAdminAuthHeaders } from '../../../lib/adminApi';
 import { broadcastSync } from '../../../lib/syncChannel';
 import { AdminStatCard } from '../shared/AdminStatCard';
@@ -21,18 +20,16 @@ export const AdminSales: React.FC = () => {
     const loadStoreSettings = async () => {
       let settingsObj: Record<string, any> = {};
 
-      // 1. Google Cloud Firestore
-      const db = getGoogleFirestore();
-      if (db) {
-        try {
-          const snap = await getDoc(doc(db, 'store_settings', 'sale'));
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data) settingsObj = data;
-          }
-        } catch (e) {
-          console.warn("Firestore load sale settings notice:", e);
+      // 1. Supabase
+      try {
+        const client = getSupabase();
+        const { data: storeData } = await client.from('store_settings').select('*');
+        if (Array.isArray(storeData)) {
+          const found = storeData.find(s => s.id === 'sale' || s.id === 'current');
+          if (found) settingsObj = found;
         }
+      } catch (e) {
+        console.warn("Supabase load sale settings notice:", e);
       }
 
       // 2. Express Backend API
@@ -76,17 +73,16 @@ export const AdminSales: React.FC = () => {
       sale_discount_amount: saleDiscountAmount.toString()
     };
 
-    // 1. Google Cloud Firestore
-    const db = getGoogleFirestore();
-    if (db) {
-      try {
-        await setDoc(doc(db, 'store_settings', 'sale'), {
-          ...settings,
-          updated_at: new Date().toISOString()
-        }, { merge: true });
-      } catch (e) {
-        console.warn("Firestore upsert settings notice:", e);
-      }
+    // 1. Supabase
+    try {
+      const client = getSupabase();
+      await client.from('store_settings').upsert({
+        id: 'sale',
+        ...settings,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    } catch (e) {
+      console.warn("Supabase upsert settings notice:", e);
     }
 
     // 2. Express Backend API

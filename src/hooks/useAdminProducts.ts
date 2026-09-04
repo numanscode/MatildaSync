@@ -1,11 +1,10 @@
 import { useState, useCallback } from 'react';
 import { fetchAdminProducts, saveAdminProduct, deleteAdminProduct as apiDeleteAdminProduct, getLocalDeletedProductIds } from '../lib/adminApi';
-import { getGoogleFirestore } from '../lib/googleDatabase';
-import { collection, getDocs } from 'firebase/firestore';
+import { getSupabase } from '../lib/supabaseClient';
 
-function withTimeout<T>(promise: Promise<T>, ms = 3000, fallbackVal: T): Promise<T> {
+function withTimeout<T>(promise: PromiseLike<T> | Promise<T> | any, ms = 3000, fallbackVal: T): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<T>((resolve) => setTimeout(() => resolve(fallbackVal), ms))
   ]);
 }
@@ -42,18 +41,20 @@ export const useAdminProducts = () => {
         console.warn("API products fetch notice:", e);
       }
 
-      // 2. Direct Google Cloud Firestore query with timeout if API gave no list
+      // 2. Direct Supabase query with timeout if API gave no list
       if (!loadedProducts || loadedProducts.length === 0) {
         try {
-          const db = getGoogleFirestore();
-          if (db) {
-            const snapshot = await withTimeout(getDocs(collection(db, 'products')), 3000, null as any);
-            if (snapshot && !snapshot.empty) {
-              loadedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            }
+          const client = getSupabase();
+          const { data: sbProds, error: sbErr } = await withTimeout(
+            client.from('products').select('*'),
+            3000,
+            { data: null, error: null } as any
+          );
+          if (!sbErr && Array.isArray(sbProds) && sbProds.length > 0) {
+            loadedProducts = sbProds;
           }
-        } catch (fsErr) {
-          console.warn('Firestore direct fetch notice:', fsErr);
+        } catch (sbErr) {
+          console.warn('Supabase direct fetch notice:', sbErr);
         }
       }
 
