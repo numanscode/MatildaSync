@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CollectionType, Product, ProductVariant, CartItem, CategoryOption } from '../types';
 import { PRODUCTS as DEFAULT_CATALOG } from '../data/products';
 import { 
@@ -170,8 +170,16 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [categories, setCategories] = useState<CategoryOption[]>(() => DEFAULT_CATEGORIES);
   const [isManagementOpen, setIsManagementOpen] = useState<boolean>(false);
 
+  const isRefreshingRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
+
   // Sync load products and categories from backend API / Supabase
   const refreshCatalogue = useCallback(async () => {
+    if (isRefreshingRef.current) {
+      pendingRefreshRef.current = true;
+      return;
+    }
+    isRefreshingRef.current = true;
     const deletedSet = getLocalDeletedProductIds();
 
     try {
@@ -254,16 +262,16 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.warn("Failed to fetch public products:", e);
     } finally {
       setIsLoading(false);
+      isRefreshingRef.current = false;
+      if (pendingRefreshRef.current) {
+        pendingRefreshRef.current = false;
+        setTimeout(() => refreshCatalogue(), 150);
+      }
     }
   }, []);
 
   useEffect(() => {
     refreshCatalogue();
-    
-    const handleCatalogueUpdate = () => {
-      refreshCatalogue();
-    };
-    window.addEventListener('matilda-catalogue-updated', handleCatalogueUpdate);
 
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
@@ -287,7 +295,6 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
 
     return () => {
-      window.removeEventListener('matilda-catalogue-updated', handleCatalogueUpdate);
       window.removeEventListener('popstate', handlePopState);
       unsubscribe();
     };

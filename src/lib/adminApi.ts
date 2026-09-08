@@ -8,6 +8,17 @@ function withTimeout<T>(promise: Promise<T>, ms = 3000, fallbackVal: T): Promise
   ]);
 }
 
+export async function safeJson<T = any>(res: Response | null | undefined): Promise<T | null> {
+  if (!res) return null;
+  try {
+    const text = await res.text();
+    if (!text || !text.trim()) return null;
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 export function getAdminToken(): string {
   return localStorage.getItem('admin_token') || 'matilda_auth_ok';
 }
@@ -34,7 +45,7 @@ export async function fetchAllOrders(): Promise<any[]> {
       credentials: 'include'
     }), 3500, null as any);
     if (res && res.ok) {
-      const data = await res.json();
+      const data = await safeJson(res);
       if (Array.isArray(data)) {
         data.forEach(order => {
           const key = order.order_number || order.id;
@@ -105,7 +116,7 @@ export async function updateOrderStatus(id: string, status: string, additionalDa
       body: JSON.stringify(updateData)
     }), 3500, null as any);
     if (res && res.ok) {
-      const updated = await res.json();
+      const updated = await safeJson(res);
       broadcastSync({ type: 'ORDERS_UPDATED', timestamp: Date.now() });
       return updated;
     }
@@ -192,7 +203,8 @@ export async function pushOrdersToCloud(): Promise<{ success: boolean; count: nu
       credentials: 'include'
     });
     if (res.ok) {
-      return await res.json();
+      const data = await safeJson(res);
+      if (data) return data;
     }
   } catch (e) {}
 
@@ -297,7 +309,7 @@ export async function fetchPublicProducts(collectionName?: string, category?: st
 
     const res = await withTimeout(fetch(`/api/products${queryString}`), 3000, null as any);
     if (res && res.ok) {
-      const data = await res.json();
+      const data = await safeJson(res);
       if (Array.isArray(data) && data.length > 0) {
         clientProductsCache = {
           data,
@@ -365,7 +377,7 @@ export async function fetchAdminProducts(): Promise<any[]> {
       cache: 'no-store'
     }), 3500, null as any);
     if (res && res.ok) {
-      const data = await res.json();
+      const data = await safeJson(res);
       if (Array.isArray(data) && data.length > 0) {
         return data.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
       }
@@ -408,8 +420,8 @@ export async function uploadFileToStorage(file: File, folder: 'catalog' | 'proof
     });
 
     if (res.ok) {
-      const data = await res.json();
-      if (data.url && typeof data.url === 'string' && !data.url.startsWith('data:')) {
+      const data = await safeJson(res);
+      if (data && data.url && typeof data.url === 'string' && !data.url.startsWith('data:')) {
         return data.url;
       }
     }
@@ -499,7 +511,7 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
       body: JSON.stringify(productToSave)
     }), 3500, null as any);
     if (res && res.ok) {
-      savedProd = await res.json();
+      savedProd = await safeJson(res);
     }
   } catch (e) {
     console.warn('Backend product save notice:', e);
@@ -563,7 +575,7 @@ export async function fetchPublicCategories(): Promise<any[]> {
   try {
     const res = await fetch(`/api/categories?_t=${Date.now()}`, { cache: 'no-store' });
     if (res.ok) {
-      const data = await res.json();
+      const data = await safeJson(res);
       if (Array.isArray(data)) {
         cats = data;
       }
@@ -647,7 +659,7 @@ export async function saveAdminCategory(category: any, isEdit: boolean): Promise
       body: JSON.stringify(dbCat)
     });
     if (res.ok) {
-      const saved = await res.json();
+      const saved = await safeJson(res);
       if (saved) {
         dbCat.id = saved.id || dbCat.id;
       }
@@ -737,7 +749,7 @@ export async function fetchAdminCustomers(): Promise<any[]> {
       credentials: 'include'
     });
     if (res.ok) {
-      const data = await res.json();
+      const data = await safeJson(res);
       if (Array.isArray(data)) return data;
     }
   } catch (e) {}
@@ -761,7 +773,7 @@ export async function toggleCustomerBlacklist(phone: string): Promise<any> {
       credentials: 'include'
     });
     if (res.ok) {
-      return await res.json();
+      return await safeJson(res);
     }
   } catch (e) {}
 
@@ -786,7 +798,7 @@ export async function fetchAdminPromos(): Promise<any[]> {
       credentials: 'include'
     });
     if (res.ok) {
-      const data = await res.json();
+      const data = await safeJson(res);
       if (Array.isArray(data)) return data;
     }
   } catch (e) {}

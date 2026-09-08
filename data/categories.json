@@ -1,0 +1,74 @@
+[
+  {
+    "id": "cat-studs",
+    "name": "Studs",
+    "slug": "studs",
+    "description": "Handcrafted golden and silver studs."
+  },
+  {
+    "id": "cat-hoops",
+    "name": "Hoops",
+    "slug": "hoops",
+    "description": "Chic classic and statement hoops."
+  },
+  {
+    "id": "cat-waist-chains",
+    "name": "Waist Chains",
+    "slug": "waist-chains",
+    "description": "Adjustable statement waist and belly chains."
+  },
+  {
+    "id": "cat-pendants",
+    "name": "Pendants",
+    "slug": "pendants",
+    "description": "Detachable gothic, celestial, and keepsake pendants."
+  },
+  {
+    "id": "cat-bracelets",
+    "name": "Bracelets",
+    "slug": "bracelets",
+    "description": "Sterling silver and steel chainlink & floral bracelets."
+  },
+  {
+    "id": "cat-nose-rings",
+    "name": "Nose Rings",
+    "slug": "nose-rings",
+    "description": "No-piercing clip-on and traditional Marathi nose rings."
+  },
+  {
+    "id": "cat-bangles",
+    "name": "Bangles",
+    "slug": "bangles",
+    "description": "Hand-painted broad and slim glossy enamel bangles."
+  },
+  {
+    "id": "cat-cuffs",
+    "name": "Cuffs",
+    "slug": "cuffs",
+    "description": "Sculptural spiral, arm, and snail-inspired cuffs."
+  },
+  {
+    "id": "cat-anklets",
+    "name": "Anklets",
+    "slug": "anklets",
+    "description": "Delicate shimmering silver anklets."
+  },
+  {
+    "id": "cat-jewelry",
+    "name": "Jewelry",
+    "slug": "jewelry",
+    "description": "Solid 925 sterling silver jewelry forged in the valley."
+  },
+  {
+    "id": "cat-ceramics",
+    "name": "Ceramics",
+    "slug": "ceramics",
+    "description": "Handcrafted ceramic vessels and studio wares."
+  },
+  {
+    "id": "cat-apparel",
+    "name": "Apparel",
+    "slug": "apparel",
+    "description": "Curated studio garments and everyday textiles."
+  }
+]

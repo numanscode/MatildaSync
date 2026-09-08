@@ -15,7 +15,15 @@ try {
   // BroadcastChannel fallback if not supported
 }
 
+let lastBroadcastTimes: Record<string, number> = {};
+
 export function broadcastSync(event: SyncEvent) {
+  const now = Date.now();
+  if (lastBroadcastTimes[event.type] && now - lastBroadcastTimes[event.type] < 120) {
+    return;
+  }
+  lastBroadcastTimes[event.type] = now;
+
   try {
     if (channel) {
       channel.postMessage(event);
@@ -29,7 +37,6 @@ export function broadcastSync(event: SyncEvent) {
       window.dispatchEvent(new CustomEvent('matilda-settings-updated', { detail: event }));
     } else if (event.type === 'CATEGORIES_UPDATED') {
       window.dispatchEvent(new CustomEvent('matilda-categories-updated', { detail: event }));
-      window.dispatchEvent(new CustomEvent('matilda-catalogue-updated', { detail: event }));
     } else if (event.type === 'PROMOS_UPDATED') {
       window.dispatchEvent(new CustomEvent('matilda-promos-updated', { detail: event }));
     } else if (event.type === 'ORDERS_UPDATED') {

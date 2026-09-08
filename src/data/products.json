@@ -28,7 +28,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:31:59.212+00:00",
-    "updated_at": "2026-09-08T15:55:06.648+00:00"
+    "updated_at": "2026-09-08T17:05:40.264+00:00"
   },
   {
     "id": "golden-studs-",
@@ -43,8 +43,8 @@
       "coral look",
       "smooth finish"
     ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736539835-toyi8c.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/1786736635071-blh6ua.jpeg",
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887298388-k0t1aj.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887315021-43nonr.jpeg",
     "galleryImages": [],
     "imageFit": "cover",
     "hasVictorianFrame": false,
@@ -58,73 +58,8 @@
       }
     ],
     "isFeatured": false,
-    "created_at": "2026-09-06T16:41:49.481+00:00",
-    "updated_at": "2026-09-08T15:55:06.648+00:00"
-  },
-  {
-    "id": "matilda-msrmjhy8",
-    "slug": "golden-waist-chain",
-    "title": "golden waist chain",
-    "collection": "women",
-    "category": "waist-chains",
-    "price": 199,
-    "stock_count": 6,
-    "description": "a statement golden waist chain featuring detailed medallion links. Fully adjustable from XXS to XXL to sit comfortably and securely on your waist.",
-    "details": [
-      "adjustable fit from XXS to XXL",
-      "intricate patterned medallion links",
-      "secure lobster clasp closure"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/plhx29qr8q.jpg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/bslpbpxqf3h.jpg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "gold toned metal",
-    "variants": [
-      {
-        "id": "v2",
-        "name": "free size",
-        "stock": 6,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-09-06T16:40:35.486+00:00",
-    "updated_at": "2026-09-08T15:55:06.648+00:00"
-  },
-  {
-    "id": "prod_1786822207499",
-    "slug": "prod_1786822207499",
-    "title": "korum heart pendent",
-    "collection": "women",
-    "category": "pendants",
-    "price": 99,
-    "stock_count": 0,
-    "description": "A bold statement necklace designed with a detachable black cord provides remarkable flexibility, letting you switch seamlessly from a dramatic, high-fashion collar style to a relaxed, everyday aesthetic.",
-    "details": [
-      "glassy heart look",
-      "goes with every fit"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786821944826_whqibetqux.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786821954502_7ushpwsn6u8.jpeg",
-    "galleryImages": [
-      "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786821961700_ia0wt5t2zdf.jpeg"
-    ],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "glass and cord",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "free size",
-        "stock": 0,
-        "inStock": false
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-09-06T16:48:54.237+00:00",
-    "updated_at": "2026-09-08T15:55:06.648+00:00"
+    "created_at": "2026-09-08T17:08:37.853+00:00",
+    "updated_at": "2026-09-08T17:08:37.853+00:00"
   },
   {
     "id": "prod_1786824810310",
@@ -156,7 +91,136 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T16:50:04.08+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.264+00:00"
+  },
+  {
+    "id": "prod_1786828872628",
+    "slug": "prod_1786828872628",
+    "title": "mini butterfly pendant",
+    "collection": "women",
+    "category": "pendants",
+    "price": 159,
+    "stock_count": 6,
+    "description": "A mini butterfly pendant offers a delicate, understated take on classic winged motifs, combining dainty proportions with graceful symmetry for a subtle everyday accessory.",
+    "details": [
+      "Dainty Scale",
+      "Clean Wing Symmetry",
+      "Integrated Bail"
+    ],
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788886859028-9rqf0j.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788886887314-mof5ci.jpeg",
+    "galleryImages": [],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Free size",
+        "stock": 6,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-08T17:01:33.487+00:00",
+    "updated_at": "2026-09-08T17:05:40.264+00:00"
+  },
+  {
+    "id": "prod_1786828593893",
+    "slug": "prod_1786828593893",
+    "title": "textured starfish pendant",
+    "collection": "women",
+    "category": "pendants",
+    "price": 169,
+    "stock_count": 8,
+    "description": "A textured starfish pendant captures the organic, sun-washed beauty of the ocean, offering a coastal-inspired statement piece with rich tactile depth and intricate detail.",
+    "details": [
+      "Dimensional Shape",
+      "Relief Texturing",
+      "Organic Asymmetry"
+    ],
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788886910789-nmpk2.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788886926857-mgoh04.jpeg",
+    "galleryImages": [],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Free size",
+        "stock": 8,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-08T17:02:13.123+00:00",
+    "updated_at": "2026-09-08T17:05:40.264+00:00"
+  },
+  {
+    "id": "prod_1786822207499",
+    "slug": "prod_1786822207499",
+    "title": "korum heart pendent",
+    "collection": "women",
+    "category": "pendants",
+    "price": 130,
+    "stock_count": 1,
+    "description": "A bold statement necklace designed with a detachable black cord provides remarkable flexibility, letting you switch seamlessly from a dramatic, high-fashion collar style to a relaxed, everyday aesthetic.",
+    "details": [
+      "glassy heart look",
+      "goes with every fit"
+    ],
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887173864-88usfr.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887188661-ln83tr.jpeg",
+    "galleryImages": [
+      "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887215719-tt20vo.jpeg"
+    ],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "glass and cord",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "free size",
+        "stock": 1,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-08T17:07:13.604+00:00",
+    "updated_at": "2026-09-08T17:07:13.604+00:00"
+  },
+  {
+    "id": "matilda-msrmjhy8",
+    "slug": "golden-waist-chain",
+    "title": "golden waist chain",
+    "collection": "women",
+    "category": "waist-chains",
+    "price": 199,
+    "stock_count": 6,
+    "description": "a statement golden waist chain featuring detailed medallion links. Fully adjustable from XXS to XXL to sit comfortably and securely on your waist.",
+    "details": [
+      "adjustable fit from XXS to XXL",
+      "intricate patterned medallion links",
+      "secure lobster clasp closure"
+    ],
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887334636-e6tl9m.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887351564-ik6tvp.jpeg",
+    "galleryImages": [],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "gold toned metal",
+    "variants": [
+      {
+        "id": "v2",
+        "name": "free size",
+        "stock": 6,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-08T17:09:14.09+00:00",
+    "updated_at": "2026-09-08T17:09:14.09+00:00"
   },
   {
     "id": "prod_1786825127272",
@@ -188,7 +252,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T16:50:37.481+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.264+00:00"
   },
   {
     "id": "prod_1786826607562",
@@ -220,102 +284,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T16:53:02.468+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
-  },
-  {
-    "id": "prod_1786827794259",
-    "slug": "prod_1786827794259",
-    "title": "silver feather pendant",
-    "collection": "both",
-    "category": "pendants",
-    "price": 169,
-    "stock_count": 1,
-    "description": "A stunning silver feather pendant paired with a chain brings a touch of organic elegance and bohemian free-spiritedness to your everyday look. Whether crafted from polished sterling silver or detailed pewter, the intricate texturing of the feather mimics the natural flow of real plumage, making it a timeless and lightweight accessory.",
-    "details": [
-      "Sterling silver ",
-      "Gothic style"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786827342007_ac62zgloeuv.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786827348025_q7n1eh6jnz9.jpeg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "steel",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "One Size",
-        "stock": 1,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-09-06T16:53:57.108+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
-  },
-  {
-    "id": "prod_1786828593893",
-    "slug": "prod_1786828593893",
-    "title": "textured starfish pendant",
-    "collection": "women",
-    "category": "pendants",
-    "price": 169,
-    "stock_count": 8,
-    "description": "A textured starfish pendant captures the organic, sun-washed beauty of the ocean, offering a coastal-inspired statement piece with rich tactile depth and intricate detail.",
-    "details": [
-      "Dimensional Shape",
-      "Relief Texturing",
-      "Organic Asymmetry"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828251263_9tejb1plsie.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828255751_wjfko879xjd.jpeg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "Free size",
-        "stock": 8,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-08-15T21:16:35.337793+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
-  },
-  {
-    "id": "prod_1786828872628",
-    "slug": "prod_1786828872628",
-    "title": "mini butterfly pendant",
-    "collection": "women",
-    "category": "pendants",
-    "price": 159,
-    "stock_count": 6,
-    "description": "A mini butterfly pendant offers a delicate, understated take on classic winged motifs, combining dainty proportions with graceful symmetry for a subtle everyday accessory.",
-    "details": [
-      "Dainty Scale",
-      "Clean Wing Symmetry",
-      "Integrated Bail"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828661681_hj0spe85vmc.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786828668607_alqs9t3a6m.jpeg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "Free size",
-        "stock": 6,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-08-15T21:21:14.240638+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.264+00:00"
   },
   {
     "id": "prod_1786870172722",
@@ -349,7 +318,38 @@
     ],
     "isFeatured": false,
     "created_at": "2026-08-16T08:49:34.104166+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
+  },
+  {
+    "id": "prod_1786827794259",
+    "slug": "prod_1786827794259",
+    "title": "silver feather pendant",
+    "collection": "both",
+    "category": "pendants",
+    "price": 169,
+    "stock_count": 1,
+    "description": "A stunning silver feather pendant paired with a chain brings a touch of organic elegance and bohemian free-spiritedness to your everyday look. Whether crafted from polished sterling silver or detailed pewter, the intricate texturing of the feather mimics the natural flow of real plumage, making it a timeless and lightweight accessory.",
+    "details": [
+      "Sterling silver ",
+      "Gothic style"
+    ],
+    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786827342007_ac62zgloeuv.jpeg",
+    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786827348025_q7n1eh6jnz9.jpeg",
+    "galleryImages": [],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "steel",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "One Size",
+        "stock": 1,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-06T16:53:57.108+00:00",
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786870408005",
@@ -381,7 +381,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:17:05.666+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786870590568",
@@ -413,39 +413,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:17:41.29+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
-  },
-  {
-    "id": "prod_1786870759558",
-    "slug": "prod_1786870759558",
-    "title": "textured starfish studs",
-    "collection": "women",
-    "category": "studs",
-    "price": 89,
-    "stock_count": 23,
-    "description": "golden textured starfish studs are delightful, ocean-inspired earrings featuring intricately detailed starfish motifs. With a warm golden finish and a tactile, sun-kissed surface, these playful studs bring a touch of coastal elegance and summery charm to your everyday wardrobe.",
-    "details": [
-      "intricate textured starfish design",
-      "versatile coastal-inspired style",
-      "compact and lightweight"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786870612497_nhpl6u9pifr.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786870620273_ijdqm19z6oe.jpeg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "golden bakelite",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "free size",
-        "stock": 23,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-08-16T08:59:21.000353+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786871517252",
@@ -479,7 +447,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:28:52.772+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786873314488",
@@ -519,7 +487,39 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:28:10.464+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
+  },
+  {
+    "id": "prod_1786870759558",
+    "slug": "prod_1786870759558",
+    "title": "textured starfish studs",
+    "collection": "women",
+    "category": "studs",
+    "price": 89,
+    "stock_count": 23,
+    "description": "golden textured starfish studs are delightful, ocean-inspired earrings featuring intricately detailed starfish motifs. With a warm golden finish and a tactile, sun-kissed surface, these playful studs bring a touch of coastal elegance and summery charm to your everyday wardrobe.",
+    "details": [
+      "intricate textured starfish design",
+      "versatile coastal-inspired style",
+      "compact and lightweight"
+    ],
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887253839-ufhcnd.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887268892-4zarg.jpeg",
+    "galleryImages": [],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "golden bakelite",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "free size",
+        "stock": 23,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-08T17:07:52.748+00:00",
+    "updated_at": "2026-09-08T17:07:52.748+00:00"
   },
   {
     "id": "prod_1786873979197",
@@ -551,7 +551,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:24:06.229+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786874264285",
@@ -583,7 +583,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:22:23.514+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786885818729",
@@ -615,7 +615,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:31:16.24+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786886190359",
@@ -647,7 +647,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:30:50.079+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786886695694",
@@ -679,7 +679,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:30:23.016+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786888756680",
@@ -837,7 +837,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:03:44.784+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786825557123",
@@ -869,7 +869,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T16:52:10.858+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786829856528",
@@ -901,7 +901,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:15:11.089+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786869157046",
@@ -936,73 +936,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:16:14.21+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
-  },
-  {
-    "id": "prod_1786873702719",
-    "slug": "prod_1786873702719",
-    "title": "tulip bracelet",
-    "collection": "women",
-    "category": "bracelets",
-    "price": 259,
-    "stock_count": 10,
-    "description": "Crafted with delicate precision, this stunning tulip bracelet features an exquisite floral-inspired design that brings a touch of timeless botanical elegance to your wrist. Its polished finish and graceful structure make it an effortless accessory, perfectly suited for adding a sophisticated, charming flair to both your everyday outfits and special occasion wear.",
-    "details": [
-      "premium Polish",
-      "elegant Botanical Style",
-      "versatile Everyday Wear"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873534784_o6os3yowr6a.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873545491_rzx06254g7.jpeg",
-    "galleryImages": [],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "high quality stainless steel",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "free size",
-        "stock": 10,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-09-06T17:18:38.097+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
-  },
-  {
-    "id": "prod_1786889479069",
-    "slug": "prod_1786889479069",
-    "title": "large sized keepsake pendant",
-    "collection": "women",
-    "category": "pendants",
-    "price": 189,
-    "stock_count": 1,
-    "description": "Keep your most cherished memories close to your heart with our Keepsake Heart Pendant. More than just a piece of jewelry, this elegant design is crafted to hold a small, meaningful memento—such as a tiny photograph, a lock of hair, or a delicate dried flower—serving as a timeless tribute to the people or moments you hold dear.",
-    "details": [
-      "functional Keepsake Design",
-      "classic Heart Silhouette",
-      "thoughtful Detailing"
-    ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786889355408_72efn2h3bq4.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786889358820_kolg8nl9ihi.jpeg",
-    "galleryImages": [
-      "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786889366894_y2jt31pjk1c.jpeg"
-    ],
-    "imageFit": "cover",
-    "hasVictorianFrame": false,
-    "material": "stainless steel",
-    "variants": [
-      {
-        "id": "v1",
-        "name": "free size",
-        "stock": 1,
-        "inStock": true
-      }
-    ],
-    "isFeatured": false,
-    "created_at": "2026-08-16T14:11:20.53459+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786828141597",
@@ -1034,7 +968,39 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T16:58:26.162+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
+  },
+  {
+    "id": "prod_1786873702719",
+    "slug": "prod_1786873702719",
+    "title": "tulip bracelet",
+    "collection": "women",
+    "category": "bracelets",
+    "price": 259,
+    "stock_count": 10,
+    "description": "Crafted with delicate precision, this stunning tulip bracelet features an exquisite floral-inspired design that brings a touch of timeless botanical elegance to your wrist. Its polished finish and graceful structure make it an effortless accessory, perfectly suited for adding a sophisticated, charming flair to both your everyday outfits and special occasion wear.",
+    "details": [
+      "premium Polish",
+      "elegant Botanical Style",
+      "versatile Everyday Wear"
+    ],
+    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873534784_o6os3yowr6a.jpeg",
+    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786873545491_rzx06254g7.jpeg",
+    "galleryImages": [],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "high quality stainless steel",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "free size",
+        "stock": 10,
+        "inStock": true
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-06T17:18:38.097+00:00",
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786829102146",
@@ -1066,7 +1032,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:02:44.316+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786829392708",
@@ -1098,7 +1064,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-08-15T21:29:53.786455+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786829635659",
@@ -1130,7 +1096,41 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:25:52.735+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
+  },
+  {
+    "id": "prod_1786889479069",
+    "slug": "prod_1786889479069",
+    "title": "large sized keepsake pendant",
+    "collection": "women",
+    "category": "pendants",
+    "price": 189,
+    "stock_count": 0,
+    "description": "Keep your most cherished memories close to your heart with our Keepsake Heart Pendant. More than just a piece of jewelry, this elegant design is crafted to hold a small, meaningful memento—such as a tiny photograph, a lock of hair, or a delicate dried flower—serving as a timeless tribute to the people or moments you hold dear.",
+    "details": [
+      "functional Keepsake Design",
+      "classic Heart Silhouette",
+      "thoughtful Detailing"
+    ],
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887396074-jmh68e.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887404389-bulbpj.jpeg",
+    "galleryImages": [
+      "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786889366894_y2jt31pjk1c.jpeg"
+    ],
+    "imageFit": "cover",
+    "hasVictorianFrame": false,
+    "material": "stainless steel",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "free size",
+        "stock": 0,
+        "inStock": false
+      }
+    ],
+    "isFeatured": false,
+    "created_at": "2026-09-08T17:10:21.981+00:00",
+    "updated_at": "2026-09-08T17:10:21.981+00:00"
   },
   {
     "id": "prod_1786869482686",
@@ -1162,7 +1162,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:29:30.621+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786875270181",
@@ -1224,7 +1224,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:20:56.044+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786885325276",
@@ -1286,7 +1286,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:20:18.118+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786886938514",
@@ -1318,7 +1318,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:06:24.709+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786887190227",
@@ -1350,7 +1350,7 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-06T17:05:39.648+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   },
   {
     "id": "prod_1786887801974",
@@ -1359,17 +1359,17 @@
     "collection": "women",
     "category": "anklets",
     "price": 129,
-    "stock_count": 2,
+    "stock_count": 0,
     "description": "adorn your ankles with the timeless, shimmering beauty of our Silver Anklets. Whether you are looking for a minimalist everyday chain or a more intricate, embellished design, these pieces are crafted to add a graceful, melodic touch to every step you take.",
     "details": [
       "premium quality",
       "versatile design",
       "secure clasp"
     ],
-    "mainImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786887600942_fod7bwdqnhh.jpeg",
-    "lifestyleImage": "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786887606469_06giyep1raue.jpeg",
+    "mainImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887126351-8jhzuy.jpeg",
+    "lifestyleImage": "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887133948-dcauju.jpeg",
     "galleryImages": [
-      "https://wagfmihahpdgoqgghpzf.supabase.co/storage/v1/object/public/product-images/products/1786887611204_h9t2ssv5drj.jpeg"
+      "https://utcumpugoogwsgafotlh.supabase.co/storage/v1/object/public/product-images/catalog/1788887143388-fnsivc.jpeg"
     ],
     "imageFit": "cover",
     "hasVictorianFrame": false,
@@ -1378,13 +1378,13 @@
       {
         "id": "v1",
         "name": "free size",
-        "stock": 2,
-        "inStock": true
+        "stock": 0,
+        "inStock": false
       }
     ],
     "isFeatured": false,
-    "created_at": "2026-08-16T13:43:23.172238+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "created_at": "2026-09-08T17:05:49.333+00:00",
+    "updated_at": "2026-09-08T17:05:49.333+00:00"
   },
   {
     "id": "prod_1786889669275",
@@ -1416,6 +1416,6 @@
     ],
     "isFeatured": false,
     "created_at": "2026-09-08T15:55:14.343746+00:00",
-    "updated_at": "2026-09-08T15:55:06.649+00:00"
+    "updated_at": "2026-09-08T17:05:40.265+00:00"
   }
 ]

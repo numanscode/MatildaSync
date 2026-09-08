@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { fetchAllOrders, getAdminAuthHeaders } from '../../../lib/adminApi';
+import { fetchAllOrders, getAdminAuthHeaders, safeJson } from '../../../lib/adminApi';
 import { useAdminProducts } from '../../../hooks/useAdminProducts';
 import { getSupabase, SUPABASE_URL } from '../../../lib/supabaseClient';
 import { 
@@ -96,13 +96,17 @@ export const AdminAnalytics: React.FC = () => {
     setIsPushing(true);
     setPushStatus(null);
     try {
-      const res = await fetch('/api/admin/products/push-supabase', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) {
+      const res = await fetch('/api/admin/products/push-supabase', { 
+        method: 'POST',
+        headers: getAdminAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setPushStatus(`✅ ${data.message || 'Synced successfully'}`);
         checkDatabaseStatus();
       } else {
-        setPushStatus(`❌ ${data.error || 'Failed to push'}`);
+        setPushStatus(`❌ ${data?.error || `Server returned status ${res.status}. Please retry.`}`);
       }
     } catch (err: any) {
       setPushStatus(`❌ Sync error: ${err?.message || 'Network error'}`);
