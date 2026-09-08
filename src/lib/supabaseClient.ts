@@ -257,6 +257,10 @@ export async function submitOrder(orderData: Partial<OrderRecord>, file?: File |
       }
     }
 
+    const cleanScreenshotUrl = (uploadedScreenshotUrl && !uploadedScreenshotUrl.startsWith('data:'))
+      ? uploadedScreenshotUrl
+      : ((fullOrder.screenshot_url && !fullOrder.screenshot_url.startsWith('data:')) ? fullOrder.screenshot_url : '');
+
     const supabasePayload = {
       id: fullOrder.id,
       order_number: fullOrder.order_number,
@@ -266,8 +270,8 @@ export async function submitOrder(orderData: Partial<OrderRecord>, file?: File |
       items: typeof fullOrder.items === 'string' ? JSON.parse(fullOrder.items) : fullOrder.items,
       total_amount: fullOrder.total_amount,
       utr_number: fullOrder.utr_number,
-      screenshot_url: uploadedScreenshotUrl || fullOrder.screenshot_url || '',
-      payment_screenshot: uploadedScreenshotUrl || fullOrder.payment_screenshot || '',
+      screenshot_url: cleanScreenshotUrl,
+      payment_screenshot: cleanScreenshotUrl,
       status: 'pending',
       created_at: fullOrder.created_at,
       synced: true

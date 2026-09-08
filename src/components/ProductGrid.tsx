@@ -6,7 +6,7 @@ import { ShoppingBag, ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { ProductImage } from './ProductImage';
 
 export const ProductGrid: React.FC = () => {
-  const { collection, openProductModal, products, categories, openBrand } = useCollection();
+  const { collection, setCollection, openProductModal, products, categories, openBrand, isLoading } = useCollection();
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   
@@ -44,6 +44,11 @@ export const ProductGrid: React.FC = () => {
     { id: 'all', name: 'All Items', slug: 'all' },
     ...categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
   ], [categories]);
+
+  const resetAllFilters = () => {
+    setActiveCategory('all');
+    setInStockOnly(false);
+  };
 
   return (
     <div className="relative w-full min-h-screen">
@@ -171,44 +176,85 @@ export const ProductGrid: React.FC = () => {
       </div>
 
       <section id="shop" className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-16">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${collection}-${activeCategory}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
-          >
-            {filteredProducts.map((product, idx) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                index={idx}
-                onOpenModal={() => openProductModal(product)}
-              />
+        {isLoading && products.length === 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <ProductSkeletonCard key={`skel-${idx}`} />
             ))}
-          </motion.div>
-        </AnimatePresence>
-
-        {filteredProducts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-[var(--card-bg)] border border-[var(--border-main)]/10 flex items-center justify-center mb-4 text-[var(--border-maroon)]/50">
-              <ShoppingBag className="w-6 h-6" />
-            </div>
-            <p className="text-lg font-display font-bold lowercase text-[var(--text-dominant)] mb-2">no pieces found</p>
-            <p className="text-sm text-[var(--text-muted)] max-w-md mx-auto mb-6">
-              Our curated collection in this category is currently empty. Explore our other selections.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              onClick={() => setActiveCategory('all')}
-              className="bg-[var(--border-maroon)] text-white px-8 py-3 rounded-full lowercase text-sm font-semibold hover:bg-[var(--text-dominant)] transition-colors shadow-sm cursor-pointer"
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${collection}-${activeCategory}-${inStockOnly}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
             >
-              explore all
-            </motion.button>
+              {filteredProducts.map((product, idx) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  index={idx}
+                  onOpenModal={() => openProductModal(product)}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
+
+        {!isLoading && filteredProducts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center max-w-lg mx-auto">
+            <div className="w-16 h-16 rounded-full bg-[var(--card-bg)] border border-[var(--border-main)]/20 flex items-center justify-center mb-4 text-[var(--border-maroon)]/70 shadow-xs">
+              <ShoppingBag className="w-7 h-7" />
+            </div>
+            <h3 className="text-xl font-display font-semibold lowercase text-[var(--text-dominant)] mb-2">
+              no pieces found
+            </h3>
+            <p className="text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
+              {inStockOnly && activeCategory !== 'all'
+                ? `No in-stock pieces currently match the '${activeCategory}' category in the ${collection}'s edit.`
+                : inStockOnly
+                ? `No items are currently marked in-stock in this collection.`
+                : activeCategory !== 'all'
+                ? `No pieces found under the '${activeCategory}' category.`
+                : `Our curated ${collection}'s edit is currently updating.`}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {inStockOnly && (
+                <button
+                  type="button"
+                  onClick={() => setInStockOnly(false)}
+                  className="px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-full border border-[var(--border-main)]/30 hover:border-[var(--border-maroon)] text-[var(--text-dominant)] hover:text-[var(--border-maroon)] transition-colors cursor-pointer"
+                >
+                  Show Out-of-Stock
+                </button>
+              )}
+              {activeCategory !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('all')}
+                  className="px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-full border border-[var(--border-main)]/30 hover:border-[var(--border-maroon)] text-[var(--text-dominant)] hover:text-[var(--border-maroon)] transition-colors cursor-pointer"
+                >
+                  All Categories
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setCollection(collection === 'women' ? 'men' : 'women')}
+                className="px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-full border border-[var(--border-main)]/30 hover:border-[var(--border-maroon)] text-[var(--text-dominant)] hover:text-[var(--border-maroon)] transition-colors cursor-pointer"
+              >
+                Switch to {collection === 'women' ? "Men's Edit" : "Women's Edit"}
+              </button>
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className="bg-[var(--border-maroon)] text-white px-6 py-2 rounded-full uppercase tracking-wider text-xs font-semibold hover:bg-[var(--text-dominant)] transition-colors shadow-sm cursor-pointer"
+              >
+                Reset All Filters
+              </button>
+            </div>
           </div>
         )}
       </section>
@@ -295,7 +341,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(({
             <span>only {totalStock} left</span>
           </motion.div>
         ) : product.isFeatured ? (
-          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-black dark:text-white rounded-md border border-black/5 dark:border-white/10 z-10 pointer-events-none shadow-xs">
+          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 bg-[var(--card-bg)]/95 backdrop-blur-sm px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[var(--text-dominant)] rounded-md border border-[var(--border-main)]/30 z-10 pointer-events-none shadow-xs">
             featured
           </div>
         ) : null}
@@ -315,7 +361,7 @@ const ProductCard: React.FC<ProductCardProps> = memo(({
             className={`w-full py-2.5 sm:py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer ${
               isOutOfStock
                 ? 'bg-neutral-800/90 text-neutral-400 cursor-not-allowed border border-neutral-700'
-                : 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md text-black dark:text-white hover:bg-[var(--border-maroon)] hover:text-white dark:hover:bg-[var(--border-maroon)]'
+                : 'bg-[var(--card-bg)]/95 backdrop-blur-md text-[var(--text-dominant)] border border-[var(--border-main)]/30 hover:bg-[var(--border-maroon)] hover:text-white hover:border-[var(--border-maroon)]'
             }`}
           >
             <span>{isOutOfStock ? 'Out of Stock' : 'Quick Add'}</span>
@@ -358,5 +404,26 @@ const ProductCard: React.FC<ProductCardProps> = memo(({
     </motion.div>
   );
 });
+
+const ProductSkeletonCard: React.FC = () => {
+  return (
+    <div className="flex flex-col h-full p-2.5 sm:p-4 rounded-[20px] sm:rounded-3xl bg-[var(--bg-primary)]/40 border border-[var(--border-main)]/10 animate-pulse">
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[14px] sm:rounded-2xl bg-[var(--border-main)]/10 mb-3 sm:mb-4">
+        <div className="w-full h-full bg-gradient-to-tr from-transparent via-[var(--border-main)]/5 to-transparent" />
+      </div>
+      <div className="flex flex-col flex-1 px-1 gap-2">
+        <div className="flex justify-between items-start gap-3">
+          <div className="h-4 bg-[var(--border-main)]/15 rounded w-2/3" />
+          <div className="h-4 bg-[var(--border-main)]/15 rounded w-1/4" />
+        </div>
+        <div className="flex items-center justify-between mt-auto pt-2">
+          <div className="h-3 bg-[var(--border-main)]/10 rounded w-1/3" />
+          <div className="h-3 bg-[var(--border-main)]/10 rounded w-1/4" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 

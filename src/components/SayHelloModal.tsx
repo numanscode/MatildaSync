@@ -45,7 +45,7 @@ export const SayHelloModal: React.FC = () => {
                 setIsSayHelloOpen(false);
                 setSubmitted(false);
               }}
-              className="w-9 h-9 rounded-full border border-[var(--border-main)] bg-white/80 flex items-center justify-center text-[var(--text-dominant)] hover:bg-[var(--border-maroon)] hover:text-white transition-all shadow-xs"
+              className="w-9 h-9 rounded-full border border-[var(--border-main)] bg-[var(--card-bg)]/80 flex items-center justify-center text-[var(--text-dominant)] hover:bg-[var(--border-maroon)] hover:text-white transition-all shadow-xs"
             >
               <X className="w-4 h-4" />
             </button>
@@ -81,7 +81,7 @@ export const SayHelloModal: React.FC = () => {
                   placeholder="e.g. Matilda"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-white border border-[var(--border-main)] rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-maroon)] shadow-xs"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-main)]/30 rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-maroon)] shadow-xs"
                 />
               </div>
 
@@ -95,7 +95,7 @@ export const SayHelloModal: React.FC = () => {
                   placeholder="you@domain.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-white border border-[var(--border-main)] rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-maroon)] shadow-xs"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-main)]/30 rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-maroon)] shadow-xs"
                 />
               </div>
 
@@ -109,7 +109,7 @@ export const SayHelloModal: React.FC = () => {
                   placeholder="Ask about sizing, custom orders, or just say hello."
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  className="w-full bg-white border border-[var(--border-main)] rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-maroon)] shadow-xs"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-main)]/30 rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--border-maroon)] shadow-xs"
                 />
               </div>
 

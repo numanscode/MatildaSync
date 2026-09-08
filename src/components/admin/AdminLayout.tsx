@@ -65,9 +65,9 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F4F5] text-[#1A1A1A] font-body flex" style={{
-      '--bg-admin': '#F4F4F5',
-      '--bg-card': '#FFFFFF',
+    <div className="min-h-screen bg-[var(--bg-admin,#F5EFE6)] text-[#1A1A1A] font-body flex" style={{
+      '--bg-admin': '#F5EFE6',
+      '--bg-card': '#FAF5ED',
       '--border-admin': '#722F37',
       '--border-admin-subtle': 'rgba(114, 47, 55, 0.15)',
       '--text-admin': '#1A1A1A'
@@ -76,7 +76,7 @@ export const AdminLayout: React.FC = () => {
       {authenticated && location.pathname !== '/admin/login' && (
         <>
           {/* Mobile Header Overlay */}
-          <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-gray-200 z-40 flex items-center justify-between px-4">
+          <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[var(--bg-card,#FAF5ED)]/95 backdrop-blur-md border-b border-[var(--border-main,#D9CBBF)]/40 z-40 flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-xl bg-[var(--border-admin)] flex items-center justify-center text-white shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -97,11 +97,11 @@ export const AdminLayout: React.FC = () => {
           )}
 
           {/* Sidebar Navigation */}
-          <aside className={`w-64 bg-white/95 backdrop-blur-md border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-50 shadow-xs transition-transform duration-300 ${
+          <aside className={`w-64 bg-[var(--bg-card,#FAF5ED)]/95 backdrop-blur-md border-r border-[var(--border-main,#D9CBBF)]/40 flex flex-col fixed inset-y-0 left-0 z-50 shadow-xs transition-transform duration-300 ${
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           } lg:top-0 top-16`}>
             
-            <div className="hidden lg:flex p-6 border-b border-gray-100 items-center justify-between">
+            <div className="hidden lg:flex p-6 border-b border-[var(--border-main,#D9CBBF)]/30 items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[var(--border-admin)] flex items-center justify-center text-white shadow-xs">
                   <Sparkles className="w-4 h-4" />

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Check, UploadCloud, Truck, Loader2, QrCode, Banknote, ShieldCheck } from 'lucide-react';
 import { lookupPincode, calculateDelhiveryShipping, ShippingCalculation } from '../lib/shipping';
 import { submitOrder, getSupabase } from '../lib/supabaseClient';
+import { uploadFileToStorage } from '../lib/adminApi';
 import { motion } from 'motion/react';
 
 export const CheckoutPage: React.FC = () => {
@@ -297,17 +298,12 @@ export const CheckoutPage: React.FC = () => {
     try {
       const fullAddress = `${formData.street}${formData.apartment ? `, ${formData.apartment}` : ''}, ${formData.city}, ${formData.state}`;
       
-      let screenshotBase64 = '';
+      let screenshotStorageUrl = '';
       if (!isCOD && file) {
         try {
-          screenshotBase64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
+          screenshotStorageUrl = await uploadFileToStorage(file, 'proofs');
         } catch (e) {
-          console.warn("Screenshot read notice:", e);
+          console.warn("Screenshot storage upload notice:", e);
         }
       }
 
@@ -325,7 +321,7 @@ export const CheckoutPage: React.FC = () => {
         promo_code: appliedPromo ? appliedPromo.code : undefined,
         discount_amount: appliedPromo ? discountAmount : undefined,
         items: cart,
-        screenshot: screenshotBase64
+        screenshot: screenshotStorageUrl
       };
 
       // Multi-Engine Unified Checkout Submit (Backend API -> Supabase Database -> Local Durable Store)
@@ -341,8 +337,8 @@ export const CheckoutPage: React.FC = () => {
         },
         total_amount: finalTotal,
         utr_number: finalUtr,
-        payment_screenshot: screenshotBase64 || '',
-        screenshot_url: screenshotBase64 || '',
+        payment_screenshot: screenshotStorageUrl || '',
+        screenshot_url: screenshotStorageUrl || '',
         status: 'pending' as const,
         created_at: new Date().toISOString()
       };
@@ -637,7 +633,7 @@ export const CheckoutPage: React.FC = () => {
             ) : (
               /* UPI Specific QR & Details */
               <div className="flex flex-col xl:flex-row items-center xl:items-start gap-6">
-                <div className="bg-white p-3 rounded-3xl border border-[var(--border-main)]/10 shadow-sm shrink-0">
+                <div className="bg-[var(--card-bg)] p-3 rounded-3xl border border-[var(--border-main)]/20 shadow-xs shrink-0">
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`upi://pay?pa=${upiConfig.upi_id}&pn=${encodeURIComponent(upiConfig.payee_name)}&am=${finalTotal}&cu=INR`)}`} 
                     alt="UPI QR Code" 

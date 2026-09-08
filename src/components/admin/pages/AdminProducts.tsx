@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Pencil, Trash2, Plus, Loader2, Image as ImageIcon, Check, Filter, Layers, RefreshCw } from 'lucide-react';
 import { useAdminProducts } from '../../../hooks/useAdminProducts';
 import { useCollection } from '../../../context/CollectionContext';
-import { getAdminAuthHeaders } from '../../../lib/adminApi';
+import { getAdminAuthHeaders, uploadFileToStorage } from '../../../lib/adminApi';
 import { AdminModal } from '../shared/AdminModal';
 import { AdminConfirmModal } from '../shared/AdminConfirmModal';
 import { AdminSearch } from '../shared/AdminSearch';
@@ -164,41 +164,22 @@ export const AdminProducts: React.FC = () => {
 
     setIsUploading(true);
     try {
-      let uploadedUrl = '';
-      try {
-        const uploadData = new FormData();
-        uploadData.append('file', file);
-        const res = await fetch('/api/admin/upload', {
-          method: 'POST',
-          headers: getAdminAuthHeaders(),
-          credentials: 'include',
-          body: uploadData
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.url) uploadedUrl = data.url;
-        }
-      } catch (e) {
-        console.warn("Backend upload notice:", e);
-      }
-
-      if (!uploadedUrl) {
-        uploadedUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => resolve(ev.target?.result as string || '');
-          reader.readAsDataURL(file);
-        });
+      const uploadedUrl = await uploadFileToStorage(file, 'catalog');
+      if (!uploadedUrl || uploadedUrl.startsWith('data:')) {
+        throw new Error("Could not obtain a valid storage URL for the uploaded file.");
       }
 
       if (field === 'galleryImages' && index !== undefined) {
         handleArrayChange(index, uploadedUrl, 'galleryImages');
       } else {
-        setFormData({ ...formData, [field]: uploadedUrl });
+        setFormData(prev => ({ ...prev, [field]: uploadedUrl }));
       }
     } catch (err: any) {
-      alert(`Upload failed: ${err.message}`);
+      console.error("Storage upload failed:", err);
+      alert(`Image upload to Supabase Storage failed: ${err.message || 'Please verify connection and try again'}`);
     } finally {
       setIsUploading(false);
+      if (e.target) e.target.value = '';
     }
   };
 

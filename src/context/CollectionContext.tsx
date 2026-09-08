@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { CollectionType, Product, ProductVariant, CartItem, CategoryOption } from '../types';
+import { PRODUCTS as DEFAULT_CATALOG } from '../data/products';
 import { 
   fetchPublicProducts, 
   fetchPublicCategories, 
@@ -85,11 +86,46 @@ const DEFAULT_CATEGORIES: CategoryOption[] = [
   { id: 'cat-editorial', name: 'Editorial', slug: 'editorial', description: 'Artisanal publications, zines, and valley prints.' }
 ];
 
+function areProductListsEqual(a: Product[], b: Product[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (
+      a[i].id !== b[i].id ||
+      a[i].price !== b[i].price ||
+      a[i].stock_count !== b[i].stock_count ||
+      a[i].title !== b[i].title ||
+      a[i].mainImage !== b[i].mainImage ||
+      a[i].lifestyleImage !== b[i].lifestyleImage ||
+      a[i].isFeatured !== b[i].isFeatured
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const CollectionContext = createContext<CollectionContextType | undefined>(undefined);
 
 export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [collection, setCollectionState] = useState<CollectionType>('women');
-  const [viewMode, setViewMode] = useState<'brand' | 'shop'>('brand');
+  const [collection, setCollectionState] = useState<CollectionType>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const col = params.get('collection')?.toLowerCase();
+      if (col === 'men' || col === 'women') return col;
+    }
+    return 'women';
+  });
+
+  const [viewMode, setViewMode] = useState<'brand' | 'shop'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('view') === 'shop' || window.location.pathname === '/shop' || window.location.pathname === '/catalog') {
+        return 'shop';
+      }
+    }
+    return 'brand';
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -120,16 +156,16 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     window.history.pushState({}, '', url.toString());
   };
   
-  // DAPMAT Catalogue & Categories Management State
+  // DAPMAT Catalogue & Categories Management State with instant resilient hydration
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('matilda_products');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    return [];
+    return DEFAULT_CATALOG;
   });
   const [categories, setCategories] = useState<CategoryOption[]>(() => DEFAULT_CATEGORIES);
   const [isManagementOpen, setIsManagementOpen] = useState<boolean>(false);
@@ -138,66 +174,86 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const refreshCatalogue = useCallback(async () => {
     const deletedSet = getLocalDeletedProductIds();
 
-    // 1. Fetch Products from backend
     try {
+      setIsLoading(true);
+
+      // 1. Fetch Products from backend API / Supabase
       const fetchedProds = await fetchPublicProducts();
-      if (Array.isArray(fetchedProds)) {
+      if (Array.isArray(fetchedProds) && fetchedProds.length > 0) {
         const activeProds = fetchedProds.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
-        const normalized = activeProds.map((p: any) => {
-          const variants = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants.map((v: any, idx: number) => {
-            const stock = typeof v.stock === 'number'
-              ? v.stock
-              : (v.stock !== undefined ? Number(v.stock) || 0 : (v.inStock === false ? 0 : 10));
+        if (activeProds.length > 0) {
+          const normalized = activeProds.map((p: any) => {
+            const variants = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants.map((v: any, idx: number) => {
+              const stock = typeof v.stock === 'number'
+                ? v.stock
+                : (v.stock !== undefined ? Number(v.stock) || 0 : (v.inStock === false ? 0 : 10));
+              return {
+                id: v.id || `v${idx + 1}`,
+                name: v.name || v.size || 'One Size',
+                stock,
+                inStock: typeof v.inStock !== 'undefined' ? (stock > 0 && v.inStock) : stock > 0
+              };
+            }) : [{ id: 'v1', name: 'One Size', inStock: true, stock: 10 }];
+
+            const totalVariantStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+            const stock_count = (p.stock_count !== undefined && p.stock_count !== null && Number(p.stock_count) >= 0)
+              ? Number(p.stock_count)
+              : totalVariantStock;
+
             return {
-              id: v.id || `v${idx + 1}`,
-              name: v.name || v.size || 'One Size',
-              stock,
-              inStock: typeof v.inStock !== 'undefined' ? (stock > 0 && v.inStock) : stock > 0
+              id: p.id,
+              slug: p.slug || p.id,
+              title: p.title || p.name,
+              collection: p.collection || (p.category === 'men' ? 'men' : 'women'),
+              category: p.category || 'general',
+              price: Number(p.price || 0),
+              stock_count,
+              description: p.description || '',
+              details: Array.isArray(p.details) ? p.details : [],
+              mainImage: p.mainImage || p.image || p.image_url || '',
+              lifestyleImage: p.lifestyleImage || p.hover_image || p.hover_image_url || p.mainImage || '',
+              galleryImages: Array.isArray(p.galleryImages) ? p.galleryImages : [],
+              imageFit: p.imageFit || 'cover',
+              isFeatured: !!p.isFeatured,
+              hasVictorianFrame: !!p.hasVictorianFrame,
+              variants,
+              material: p.material || ''
             };
-          }) : [{ id: 'v1', name: 'One Size', inStock: true, stock: 10 }];
+          });
 
-          const totalVariantStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
-          const stock_count = (p.stock_count !== undefined && p.stock_count !== null && Number(p.stock_count) > 0)
-            ? Number(p.stock_count)
-            : totalVariantStock;
+          setProducts((prev) => {
+            if (areProductListsEqual(prev, normalized)) {
+              return prev;
+            }
+            try {
+              localStorage.setItem('matilda_products', JSON.stringify(normalized));
+            } catch {}
+            return normalized;
+          });
+        }
+      }
 
-          return {
-            id: p.id,
-            slug: p.slug || p.id,
-            title: p.title || p.name,
-            collection: p.collection || (p.category === 'men' ? 'men' : 'women'),
-            category: p.category || 'general',
-            price: Number(p.price || 0),
-            stock_count,
-            description: p.description || '',
-            details: Array.isArray(p.details) ? p.details : [],
-            mainImage: p.mainImage || p.image || p.image_url || '',
-            lifestyleImage: p.lifestyleImage || p.hover_image || p.hover_image_url || p.mainImage || '',
-            galleryImages: Array.isArray(p.galleryImages) ? p.galleryImages : [],
-            imageFit: p.imageFit || 'cover',
-            isFeatured: !!p.isFeatured,
-            hasVictorianFrame: !!p.hasVictorianFrame,
-            variants,
-            material: p.material || ''
-          };
-        });
-        setProducts(normalized);
-        try {
-          localStorage.setItem('matilda_products', JSON.stringify(normalized));
-        } catch {}
+      // 2. Fetch Categories from backend
+      try {
+        const fetchedCats = await fetchPublicCategories();
+        if (Array.isArray(fetchedCats) && fetchedCats.length > 0) {
+          setCategories((prev) => {
+            if (
+              prev.length === fetchedCats.length &&
+              prev.every((c, idx) => c.id === fetchedCats[idx].id && c.name === fetchedCats[idx].name && c.slug === fetchedCats[idx].slug)
+            ) {
+              return prev;
+            }
+            return fetchedCats;
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to fetch public categories:", e);
       }
     } catch (e) {
       console.warn("Failed to fetch public products:", e);
-    }
-
-    // 2. Fetch Categories from backend
-    try {
-      const fetchedCats = await fetchPublicCategories();
-      if (Array.isArray(fetchedCats) && fetchedCats.length > 0) {
-        setCategories(fetchedCats);
-      }
-    } catch (e) {
-      console.warn("Failed to fetch public categories:", e);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -209,6 +265,21 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
     window.addEventListener('matilda-catalogue-updated', handleCatalogueUpdate);
 
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view');
+      const col = params.get('collection')?.toLowerCase();
+      if (window.location.pathname === '/shop' || view === 'shop') {
+        setViewMode('shop');
+      } else if (view === 'brand') {
+        setViewMode('brand');
+      }
+      if (col === 'men' || col === 'women') {
+        setCollectionState(col);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+
     const unsubscribe = subscribeToSync((msg) => {
       if (msg.type === 'CATALOGUE_UPDATED' || msg.type === 'CATEGORIES_UPDATED') {
         refreshCatalogue();
@@ -217,6 +288,7 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     return () => {
       window.removeEventListener('matilda-catalogue-updated', handleCatalogueUpdate);
+      window.removeEventListener('popstate', handlePopState);
       unsubscribe();
     };
   }, [refreshCatalogue]);

@@ -275,6 +275,83 @@ function persistCategoriesToDisk(categories: any[]) {
 let inMemoryCategories: any[] = loadPersistedCategories();
 const deletedCategorySlugs = new Set<string>();
 
+const PRODUCTS_STORAGE_PATHS = [
+  path.join(process.cwd(), 'data', 'products.json'),
+  path.join(process.cwd(), 'src', 'data', 'products.json'),
+  path.join('/tmp', 'matilda_products.json')
+];
+
+const DELETED_PRODUCTS_STORAGE_PATHS = [
+  path.join(process.cwd(), 'data', 'deleted_products.json'),
+  path.join('/tmp', 'matilda_deleted_products.json')
+];
+
+function loadPersistedDeletedProducts(): Set<string> {
+  for (const fp of DELETED_PRODUCTS_STORAGE_PATHS) {
+    try {
+      if (fs.existsSync(fp)) {
+        const raw = fs.readFileSync(fp, 'utf-8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return new Set(parsed);
+      }
+    } catch (e) {}
+  }
+  return new Set();
+}
+
+function persistDeletedProductsToDisk(set: Set<string>) {
+  for (const fp of DELETED_PRODUCTS_STORAGE_PATHS) {
+    try {
+      const dir = path.dirname(fp);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(fp, JSON.stringify(Array.from(set), null, 2), 'utf-8');
+    } catch (e) {}
+  }
+}
+
+const deletedProductIds = loadPersistedDeletedProducts();
+
+function loadDefaultProducts(): any[] {
+  for (const fp of PRODUCTS_STORAGE_PATHS) {
+    try {
+      if (fs.existsSync(fp)) {
+        const raw = fs.readFileSync(fp, 'utf-8');
+        const data = JSON.parse(raw);
+        if (Array.isArray(data) && data.length > 0) {
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed loading products from disk path:", fp, e);
+    }
+  }
+
+  try {
+    const directPath = path.resolve(__dirname, 'data', 'products.json');
+    if (fs.existsSync(directPath)) {
+      const data = JSON.parse(fs.readFileSync(directPath, 'utf-8'));
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+
+  return [];
+}
+
+function persistProductsToDisk(products: any[]) {
+  for (const fp of PRODUCTS_STORAGE_PATHS) {
+    try {
+      const dir = path.dirname(fp);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(fp, JSON.stringify(products, null, 2), 'utf-8');
+    } catch (e) {}
+  }
+}
+
+const DEFAULT_PRODUCTS = loadDefaultProducts();
+let inMemoryProducts: any[] = [...DEFAULT_PRODUCTS].filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
+let lastProductsFetchTime = 0;
+const PRODUCTS_CACHE_TTL_MS = 30000; // 30-second high-performance memory cache
+
 // Supabase Database Engine
 const SUPABASE_URL = process.env.SUPABASE_URL || 
                      process.env.VITE_SUPABASE_URL || 
@@ -479,6 +556,69 @@ function initServerSupabase(): SupabaseClient | null {
   }
 })();
 
+// --- Dedicated Supabase Storage Utilities ---
+async function uploadBufferToSupabaseStorage(buffer: Buffer, fileName: string, mimeType: string, folder = 'catalog'): Promise<string | null> {
+  try {
+    const supabase = initServerSupabase();
+    if (!supabase) return null;
+    const storagePath = `${folder}/${fileName}`;
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(storagePath, buffer, {
+        contentType: mimeType || 'image/jpeg',
+        upsert: true
+      });
+    if (!error && data?.path) {
+      const { data: pubData } = supabase.storage.from('product-images').getPublicUrl(storagePath);
+      if (pubData?.publicUrl) {
+        return pubData.publicUrl;
+      }
+    }
+    if (error) {
+      console.warn(`[Supabase Storage] Upload error to ${storagePath}:`, error.message);
+    }
+  } catch (err: any) {
+    console.warn(`[Supabase Storage] Unexpected error:`, err?.message);
+  }
+  return null;
+}
+
+// Ensure an image (which might be a raw base64 data: string) is converted to a Supabase Storage URL
+async function sanitizeAndPersistImageUrl(imageInput: any, folder = 'catalog'): Promise<string> {
+  if (!imageInput || typeof imageInput !== 'string') return '';
+  const trimmed = imageInput.trim();
+  if (!trimmed.startsWith('data:')) {
+    // Already an HTTP or clean relative URL
+    return trimmed;
+  }
+  
+  // Base64 string detected: Decode binary and upload to Supabase Storage
+  try {
+    const match = trimmed.match(/^data:([^;]+);base64,(.+)$/);
+    if (match) {
+      const mimeType = match[1];
+      const base64Data = match[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const ext = mimeType.split('/')[1] || 'jpg';
+      const fileName = `img-${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      
+      const storageUrl = await uploadBufferToSupabaseStorage(buffer, fileName, mimeType, folder);
+      if (storageUrl) {
+        return storageUrl;
+      }
+      
+      // Secondary fallback to public/uploads directory
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+      fs.writeFileSync(path.join(uploadsDir, fileName), buffer);
+      return `/uploads/${fileName}`;
+    }
+  } catch (e: any) {
+    console.warn("Failed to convert base64 image to storage:", e?.message);
+  }
+  return '';
+}
+
 // --- API Routes ---
 
 app.get(["/api/health", "/health"], (req, res) => {
@@ -681,23 +821,26 @@ app.post(["/api/checkout", "/checkout"], (req: any, res: any, next: any) => {
     // Screenshot handling (optional)
     let screenshotUrl = '';
     if (!isCOD) {
-      if (file) {
-        try {
-          const sanitizedName = file.originalname ? file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_') : 'screenshot.jpg';
-          const fileName = `${Date.now()}-${sanitizedName}`;
-          const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-          if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-          }
-          fs.writeFileSync(path.join(uploadsDir, fileName), file.buffer);
-          screenshotUrl = `/uploads/${fileName}`;
-        } catch (storageErr) {
-          if (file.buffer && file.buffer.length < 3 * 1024 * 1024) {
-            screenshotUrl = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
+      if (file && file.buffer) {
+        const sanitizedName = file.originalname ? file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_') : 'payment_proof.jpg';
+        const fileName = `${Date.now()}-${sanitizedName}`;
+        const storageUrl = await uploadBufferToSupabaseStorage(file.buffer, fileName, file.mimetype || 'image/jpeg', 'proofs');
+        if (storageUrl) {
+          screenshotUrl = storageUrl;
+        } else {
+          try {
+            const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+            if (!fs.existsSync(uploadsDir)) {
+              fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(uploadsDir, fileName), file.buffer);
+            screenshotUrl = `/uploads/${fileName}`;
+          } catch (e) {
+            console.warn("Screenshot local disk write notice:", e);
           }
         }
       } else if (screenshotInput && typeof screenshotInput === 'string') {
-        screenshotUrl = screenshotInput;
+        screenshotUrl = await sanitizeAndPersistImageUrl(screenshotInput, 'proofs');
       }
     }
 
@@ -1076,39 +1219,41 @@ app.post(["/api/upload-founder-image", "/upload-founder-image"], upload.single("
   }
 });
 
-// Public Products API
+// Public Products API with high-performance memory caching and SWR
 app.get(["/api/products", "/products", "/api/products/"], async (req, res) => {
   try {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    // SWR Browser & Edge cache header: cache for 15s, allow stale for up to 60s
+    res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
     const collection = req.query.collection as string;
     const category = req.query.category as string;
+    const forceFresh = req.query.fresh === 'true';
 
-    let productsList: any[] = [];
+    const isCacheFresh = !forceFresh && inMemoryProducts.length > 0 && (Date.now() - lastProductsFetchTime < PRODUCTS_CACHE_TTL_MS);
 
-    try {
-      const supabase = initServerSupabase();
-      if (supabase) {
-        const { data: sbProds } = await withTimeoutServer(
-          supabase.from('products').select('*'),
-          2500,
-          { data: null, error: null } as any
-        );
-        if (Array.isArray(sbProds) && sbProds.length > 0) {
-          const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
-          productsList = mapped;
-          inMemoryProducts = productsList.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
-          try {
-            persistProductsToDisk(inMemoryProducts);
-          } catch (e) {}
+    if (!isCacheFresh) {
+      try {
+        const supabase = initServerSupabase();
+        if (supabase) {
+          const { data: sbProds } = await withTimeoutServer(
+            supabase.from('products').select('*'),
+            2000,
+            { data: null, error: null } as any
+          );
+          if (Array.isArray(sbProds) && sbProds.length > 0) {
+            const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
+            inMemoryProducts = mapped.filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
+            lastProductsFetchTime = Date.now();
+            try {
+              persistProductsToDisk(inMemoryProducts);
+            } catch (e) {}
+          }
         }
+      } catch (e) {
+        console.warn("Supabase public products fetch notice (using cache):", e);
       }
-    } catch (e) {
-      console.warn("Supabase public products fetch notice:", e);
     }
 
-    if (productsList.length === 0) {
-      productsList = inMemoryProducts.length > 0 ? [...inMemoryProducts] : [];
-    }
+    let productsList = inMemoryProducts.length > 0 ? [...inMemoryProducts] : loadDefaultProducts();
 
     // Filter out deleted products
     productsList = productsList.filter(p => {
@@ -1138,7 +1283,7 @@ app.get(["/api/products", "/products", "/api/products/"], async (req, res) => {
     return res.json(productsList);
   } catch (err: any) {
     console.error("Public products route error:", err);
-    return res.json([]);
+    return res.json(inMemoryProducts.length > 0 ? inMemoryProducts : loadDefaultProducts());
   }
 });
 
@@ -1404,82 +1549,6 @@ app.post(["/api/admin/orders/push-supabase", "/api/admin/orders/push-firestore"]
   }
 });
 
-const PRODUCTS_STORAGE_PATHS = [
-  path.join(process.cwd(), 'data', 'products.json'),
-  path.join(process.cwd(), 'src', 'data', 'products.json'),
-  path.join('/tmp', 'matilda_products.json')
-];
-
-const DELETED_PRODUCTS_STORAGE_PATHS = [
-  path.join(process.cwd(), 'data', 'deleted_products.json'),
-  path.join('/tmp', 'matilda_deleted_products.json')
-];
-
-function loadPersistedDeletedProducts(): Set<string> {
-  for (const fp of DELETED_PRODUCTS_STORAGE_PATHS) {
-    try {
-      if (fs.existsSync(fp)) {
-        const raw = fs.readFileSync(fp, 'utf-8');
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return new Set(parsed);
-      }
-    } catch (e) {}
-  }
-  return new Set();
-}
-
-function persistDeletedProductsToDisk(set: Set<string>) {
-  for (const fp of DELETED_PRODUCTS_STORAGE_PATHS) {
-    try {
-      const dir = path.dirname(fp);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(fp, JSON.stringify(Array.from(set), null, 2), 'utf-8');
-    } catch (e) {}
-  }
-}
-
-const deletedProductIds = loadPersistedDeletedProducts();
-
-function loadDefaultProducts(): any[] {
-  for (const fp of PRODUCTS_STORAGE_PATHS) {
-    try {
-      if (fs.existsSync(fp)) {
-        const raw = fs.readFileSync(fp, 'utf-8');
-        const data = JSON.parse(raw);
-        if (Array.isArray(data) && data.length > 0) {
-          return data;
-        }
-      }
-    } catch (e) {
-      console.warn("Failed loading products from disk path:", fp, e);
-    }
-  }
-
-  // Fallback to data/products.json via relative module or require
-  try {
-    const directPath = path.resolve(__dirname, 'data', 'products.json');
-    if (fs.existsSync(directPath)) {
-      const data = JSON.parse(fs.readFileSync(directPath, 'utf-8'));
-      if (Array.isArray(data) && data.length > 0) return data;
-    }
-  } catch (e) {}
-
-  return [];
-}
-
-function persistProductsToDisk(products: any[]) {
-  for (const fp of PRODUCTS_STORAGE_PATHS) {
-    try {
-      const dir = path.dirname(fp);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(fp, JSON.stringify(products, null, 2), 'utf-8');
-    } catch (e) {}
-  }
-}
-
-const DEFAULT_PRODUCTS = loadDefaultProducts();
-let inMemoryProducts = [...DEFAULT_PRODUCTS].filter(p => !deletedProductIds.has(p.id) && !deletedProductIds.has(p.slug));
-
 // Explicit endpoint to trigger pushing all catalog products to Supabase
 app.post(["/api/admin/products/push-supabase", "/api/admin/products/push-firestore", "/api/products/sync-to-firestore"], async (req, res) => {
   try {
@@ -1539,34 +1608,20 @@ app.get(["/api/admin/products", "/admin/products"], adminAuth, async (req, res) 
 app.post(["/api/admin/upload", "/admin/upload"], adminAuth, upload.single('file'), async (req, res) => {
   try {
     const file = req.file;
-    if (!file) return res.status(400).json({ error: "No file uploaded" });
+    if (!file || !file.buffer) return res.status(400).json({ error: "No file uploaded" });
 
-    // Ensure we use a safe, unique filename
-    const fileExt = file.originalname.split('.').pop() || 'jpg';
+    // Determine target folder from request (default to catalog)
+    const folder = (req.body?.folder === 'proofs' ? 'proofs' : 'catalog');
+    const fileExt = file.originalname ? (file.originalname.split('.').pop() || 'jpg') : 'jpg';
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     
-    // 1. Try uploading to Supabase Storage Bucket 'product-images'
-    try {
-      const supabase = initServerSupabase();
-      if (supabase) {
-        const { data: uploadData, error: uploadErr } = await supabase.storage
-          .from('product-images')
-          .upload(`catalog/${fileName}`, file.buffer, {
-            contentType: file.mimetype || 'image/jpeg',
-            upsert: true
-          });
-        if (!uploadErr && uploadData?.path) {
-          const { data: pubData } = supabase.storage.from('product-images').getPublicUrl(`catalog/${fileName}`);
-          if (pubData?.publicUrl) {
-            return res.json({ url: pubData.publicUrl });
-          }
-        }
-      }
-    } catch (sbStorageErr) {
-      console.warn("Supabase storage upload notice:", sbStorageErr);
+    // 1. Primary: Upload binary directly into Supabase Storage Bucket 'product-images'
+    const storageUrl = await uploadBufferToSupabaseStorage(file.buffer, fileName, file.mimetype || 'image/jpeg', folder);
+    if (storageUrl) {
+      return res.json({ url: storageUrl });
     }
 
-    // 2. Save to public/uploads directory
+    // 2. Secondary fallback: Save to public/uploads directory on local persistent disk
     try {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
       if (!fs.existsSync(uploadsDir)) {
@@ -1575,15 +1630,15 @@ app.post(["/api/admin/upload", "/admin/upload"], adminAuth, upload.single('file'
       const filePath = path.join(uploadsDir, fileName);
       fs.writeFileSync(filePath, file.buffer);
       return res.json({ url: `/uploads/${fileName}` });
-    } catch (fsErr) {
-      // Fallback to data URI if disk write is restricted on serverless
-      const dataUri = `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}`;
-      return res.json({ url: dataUri });
+    } catch (fsErr: any) {
+      console.warn("Upload fallback disk write error:", fsErr?.message);
     }
+
+    // Never return raw base64; return error if both storage options failed
+    return res.status(500).json({ error: "Failed to upload file to storage" });
   } catch (err: any) {
-    console.warn("Admin upload fallback:", err);
-    const dataUri = req.file ? `data:${req.file.mimetype || 'image/jpeg'};base64,${req.file.buffer.toString('base64')}` : '';
-    res.json({ url: dataUri });
+    console.warn("Admin upload exception:", err);
+    return res.status(500).json({ error: err?.message || "Internal upload error" });
   }
 });
 
@@ -1594,13 +1649,20 @@ app.post(["/api/admin/products", "/admin/products"], adminAuth, async (req, res)
     isFeatured, hasVictorianFrame, material 
   } = req.body;
 
+  // Enforce clean Supabase Storage URLs across all product image fields
+  const cleanMainImage = await sanitizeAndPersistImageUrl(mainImage, 'catalog');
+  const cleanLifestyleImage = await sanitizeAndPersistImageUrl(lifestyleImage, 'catalog');
+  const cleanGalleryImages = Array.isArray(galleryImages) 
+    ? await Promise.all(galleryImages.map((img: string) => sanitizeAndPersistImageUrl(img, 'catalog')))
+    : [];
+
   const newProd = {
     id: id || slug || title?.toLowerCase().replace(/[^a-z0-9]/g, '-') || `matilda-${Date.now()}`,
     slug: slug || title?.toLowerCase().replace(/[^a-z0-9]/g, '-') || `prod-${Date.now()}`, 
     title: title || 'New Product', collection: collection || 'women', category: category || 'general', price: Number(price || 0), stock_count: Number(stock_count || 0), description: description || '', 
     details: details || [], 
-    mainImage: mainImage || '', lifestyleImage: lifestyleImage || '', 
-    galleryImages: galleryImages || [], 
+    mainImage: cleanMainImage || '', lifestyleImage: cleanLifestyleImage || '', 
+    galleryImages: cleanGalleryImages, 
     imageFit: imageFit || 'cover', 
     variants: variants || [], 
     isFeatured: !!isFeatured, 
@@ -1641,13 +1703,20 @@ app.put(["/api/admin/products/:id", "/admin/products/:id"], adminAuth, async (re
     isFeatured, hasVictorianFrame, material 
   } = req.body;
 
+  // Enforce clean Supabase Storage URLs across all product image fields
+  const cleanMainImage = await sanitizeAndPersistImageUrl(mainImage, 'catalog');
+  const cleanLifestyleImage = await sanitizeAndPersistImageUrl(lifestyleImage, 'catalog');
+  const cleanGalleryImages = Array.isArray(galleryImages) 
+    ? await Promise.all(galleryImages.map((img: string) => sanitizeAndPersistImageUrl(img, 'catalog')))
+    : [];
+
   const updatedProd = {
     id,
     slug: slug || title?.toLowerCase().replace(/[^a-z0-9]/g, '-'),
     title, collection, category, price: Number(price || 0), stock_count: Number(stock_count || 0), description,
     details: details || [],
-    mainImage, lifestyleImage,
-    galleryImages: galleryImages || [],
+    mainImage: cleanMainImage, lifestyleImage: cleanLifestyleImage,
+    galleryImages: cleanGalleryImages,
     imageFit: imageFit || 'cover',
     variants: variants || [],
     isFeatured: !!isFeatured,

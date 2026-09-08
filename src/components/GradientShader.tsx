@@ -107,12 +107,12 @@ export const GradientShader: React.FC = () => {
           float blend2 = smoothstep(-0.7, 0.7, w2 - w1 * 0.4);
 
           // Color Palettes
-          vec3 cBgWomen = vec3(0.98, 0.965, 0.941);     // #FAF6F0 warm champagne
+          vec3 cBgWomen = vec3(0.961, 0.937, 0.902);     // #F5EFE6 warm alabaster beige
           vec3 cMaroonWomen = vec3(0.478, 0.071, 0.157); // #7A1228 deep maroon
           vec3 cAmberWomen = vec3(0.722, 0.541, 0.306);  // #B88A4E amber gold
           vec3 cRoseWomen = vec3(0.85, 0.72, 0.72);      // soft rose quartz
 
-          vec3 cBgMen = vec3(0.886, 0.867, 0.835);       // #E2DDD5 slate stone
+          vec3 cBgMen = vec3(0.867, 0.847, 0.812);       // #DDD8CF warm graphite sand
           vec3 cMaroonMen = vec3(0.36, 0.06, 0.12);      // #5C1221 dark iron wine
           vec3 cSlateMen = vec3(0.18, 0.21, 0.25);       // deep graphite
           vec3 cBronzeMen = vec3(0.55, 0.45, 0.35);      // brushed bronze
@@ -216,7 +216,7 @@ export const GradientShader: React.FC = () => {
             ctx.clearRect(0, 0, w, h);
 
             const isMen = collection === 'men';
-            const baseColor = isMen ? '#E2DDD5' : '#FAF6F0';
+            const baseColor = isMen ? '#DDD8CF' : '#F5EFE6';
             const maroon = isMen ? 'rgba(92, 18, 33, 0.16)' : 'rgba(122, 18, 40, 0.18)';
             const gold = isMen ? 'rgba(100, 110, 120, 0.14)' : 'rgba(184, 138, 78, 0.16)';
 

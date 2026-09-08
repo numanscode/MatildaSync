@@ -34,7 +34,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-150">
       <div 
-        className={`bg-white rounded-3xl p-6 sm:p-8 w-full ${maxWidthMap[maxWidth]} border border-[var(--border-admin-subtle)] shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar`}
+        className={`bg-[var(--bg-card,#FAF5ED)] rounded-3xl p-6 sm:p-8 w-full ${maxWidthMap[maxWidth]} border border-[var(--border-admin-subtle)] shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar`}
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -31,33 +31,33 @@
   }
 
   :root[data-collection="women"] {
-    --bg-primary: #FAF6F0;
-    --bg-secondary: #F2ECE1;
-    --text-dominant: #3B0E16;
-    --text-primary: #4A1721;
-    --text-muted: #805B63;
-    --border-main: #E5DACF;
+    --bg-primary: #F5EFE6;
+    --bg-secondary: #EBE3D5;
+    --text-dominant: #2C0A10;
+    --text-primary: #3B0E17;
+    --text-muted: #6E4E55;
+    --border-main: #D9CBBF;
     --border-maroon: #7A1228;
     --accent-script: #8C1C33;
     --accent-gold: #B88A4E;
-    --card-bg: #FCFAF5;
-    --card-inner: #F4EFE6;
+    --card-bg: #FAF5ED;
+    --card-inner: #ECE3D5;
     --tag-bg: rgba(122, 18, 40, 0.08);
   }
 
   :root[data-collection="men"] {
-    --bg-primary: #E2DDD5;
-    --bg-secondary: #D4CEBF;
-    --text-dominant: #111417;
-    --text-primary: #1D2125;
-    --text-muted: #525862;
-    --border-main: #C2BAA8;
-    --border-maroon: #6B1023;
+    --bg-primary: #DDD8CF;
+    --bg-secondary: #CEC8BD;
+    --text-dominant: #101416;
+    --text-primary: #1C2024;
+    --text-muted: #4D535D;
+    --border-main: #BAB2A2;
+    --border-maroon: #5E1222;
     --accent-script: #8C1C33;
     --accent-gold: #B88A4E;
-    --card-bg: #EAE5DC;
-    --card-inner: #D9D3C5;
-    --tag-bg: rgba(107, 16, 35, 0.12);
+    --card-bg: #E4DFD6;
+    --card-inner: #D4CDC0;
+    --tag-bg: rgba(94, 18, 34, 0.12);
   }
 
   /* Smooth transition for theme variable color updates across layout containers */

@@ -249,47 +249,107 @@ export function unmarkDeletedProductId(id?: string, slug?: string) {
   } catch (e) {}
 }
 
+// Client-side products memory cache to eliminate re-render cascades and network latency
+interface CachedProductData {
+  data: any[];
+  timestamp: number;
+}
+let clientProductsCache: CachedProductData | null = null;
+const CLIENT_CACHE_TTL = 30000; // 30 seconds
+
+export function invalidateClientProductsCache() {
+  clientProductsCache = null;
+}
+
 // --- Products API ---
-export async function fetchPublicProducts(collectionName?: string, category?: string): Promise<any[]> {
+export async function fetchPublicProducts(collectionName?: string, category?: string, forceFresh = false): Promise<any[]> {
   const deletedSet = getLocalDeletedProductIds();
 
-  // 1. Try server API with timeout
+  const filterList = (items: any[]) => {
+    let list = items.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+    if (collectionName && collectionName !== 'all') {
+      const targetCol = collectionName.toLowerCase();
+      list = list.filter((p: any) => {
+        const pCol = (p.collection || 'women').toLowerCase();
+        return pCol === targetCol || pCol === 'both' || pCol === 'all';
+      });
+    }
+    if (category && category !== 'all') {
+      const targetCat = category.toLowerCase();
+      list = list.filter((p: any) => {
+        const pCat = (p.category || '').toLowerCase();
+        return pCat === targetCat;
+      });
+    }
+    return list;
+  };
+
+  // 0. Fast-path: Check fresh in-memory cache
+  if (!forceFresh && clientProductsCache && (Date.now() - clientProductsCache.timestamp < CLIENT_CACHE_TTL)) {
+    return filterList(clientProductsCache.data);
+  }
+
+  // 1. Try server API with SWR support
   try {
     const queryParams = new URLSearchParams();
-    if (collectionName) queryParams.set('collection', collectionName);
-    if (category) queryParams.set('category', category);
-    queryParams.set('_t', Date.now().toString());
-    const queryString = `?${queryParams.toString()}`;
+    if (forceFresh) queryParams.set('fresh', 'true');
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
-    const res = await withTimeout(fetch(`/api/products${queryString}`, { cache: 'no-store' }), 3500, null as any);
+    const res = await withTimeout(fetch(`/api/products${queryString}`), 3000, null as any);
     if (res && res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        return data.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+        clientProductsCache = {
+          data,
+          timestamp: Date.now()
+        };
+        try {
+          localStorage.setItem('matilda_products', JSON.stringify(data));
+        } catch {}
+        return filterList(data);
       }
     }
   } catch (e) {
-    console.warn('Public products fetch notice:', e);
+    console.warn('Public products server API notice (falling back):', e);
   }
 
   // 2. Direct Supabase fallback
   try {
     const client = getSupabase();
-    let queryBuilder = client.from('products').select('*');
-    if (collectionName && collectionName !== 'all') {
-      queryBuilder = queryBuilder.ilike('collection', `%${collectionName}%`);
-    }
-    if (category && category !== 'all') {
-      queryBuilder = queryBuilder.ilike('category', `%${category}%`);
-    }
-
-    const { data: sbProds, error } = await queryBuilder;
+    const { data: sbProds, error } = await withTimeout(
+      Promise.resolve(client.from('products').select('*')),
+      3500,
+      { data: null, error: new Error('Supabase timeout') } as any
+    );
     if (!error && Array.isArray(sbProds) && sbProds.length > 0) {
       const mapped = sbProds.map(supabaseRowToProduct).filter(Boolean);
-      return mapped.filter((p: any) => !deletedSet.has(p.id) && !deletedSet.has(p.slug));
+      clientProductsCache = {
+        data: mapped,
+        timestamp: Date.now()
+      };
+      try {
+        localStorage.setItem('matilda_products', JSON.stringify(mapped));
+      } catch {}
+      return filterList(mapped);
     }
   } catch (sbErr) {
-    console.warn('Supabase public products fetch notice:', sbErr);
+    console.warn('Supabase public products fallback notice:', sbErr);
+  }
+
+  // 3. Resilient LocalStorage fallback
+  try {
+    const local = localStorage.getItem('matilda_products');
+    if (local) {
+      const parsed = JSON.parse(local);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return filterList(parsed);
+      }
+    }
+  } catch {}
+
+  // 4. If memory cache exists even if stale, return it rather than empty
+  if (clientProductsCache && clientProductsCache.data.length > 0) {
+    return filterList(clientProductsCache.data);
   }
 
   return [];
@@ -329,10 +389,103 @@ export async function fetchAdminProducts(): Promise<any[]> {
   return fetchPublicProducts();
 }
 
+// --- Supabase Storage Image Upload Handlers ---
+export async function uploadFileToStorage(file: File, folder: 'catalog' | 'proofs' = 'catalog'): Promise<string> {
+  // 1. Try Express Backend /api/admin/upload (pushes binary buffer to Supabase Storage)
+  try {
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    uploadData.append('folder', folder);
+
+    const token = getAdminToken();
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',
+      body: uploadData
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.url && typeof data.url === 'string' && !data.url.startsWith('data:')) {
+        return data.url;
+      }
+    }
+  } catch (e) {
+    console.warn('Backend storage upload notice:', e);
+  }
+
+  // 2. Direct client-side upload to Supabase Storage Bucket 'product-images'
+  try {
+    const client = getSupabase();
+    const fileExt = file.name ? (file.name.split('.').pop() || 'jpg') : 'jpg';
+    const filePath = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    const { data, error } = await client.storage
+      .from('product-images')
+      .upload(filePath, file, {
+        contentType: file.type || 'image/jpeg',
+        upsert: true
+      });
+
+    if (!error && data?.path) {
+      const { data: pubData } = client.storage.from('product-images').getPublicUrl(filePath);
+      if (pubData?.publicUrl) {
+        return pubData.publicUrl;
+      }
+    }
+    if (error) {
+      console.warn('Direct Supabase Storage upload error:', error.message);
+    }
+  } catch (sbErr) {
+    console.warn('Direct Supabase Storage client notice:', sbErr);
+  }
+
+  throw new Error('Image upload failed. Please verify storage permissions or try a different image.');
+}
+
+export async function convertBase64ToStorageUrl(base64Str: string, folder: 'catalog' | 'proofs' = 'catalog'): Promise<string> {
+  if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:')) {
+    return base64Str;
+  }
+  try {
+    const res = await fetch(base64Str);
+    const blob = await res.blob();
+    const file = new File([blob], `image-${Date.now()}.${blob.type.split('/')[1] || 'jpg'}`, {
+      type: blob.type || 'image/jpeg'
+    });
+    return await uploadFileToStorage(file, folder);
+  } catch (e) {
+    console.warn('Base64 to storage conversion notice:', e);
+    return '';
+  }
+}
+
 export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any> {
   unmarkDeletedProductId(prod.id, prod.slug);
 
-  const url = isEdit ? `/api/admin/products/${encodeURIComponent(prod.id)}` : '/api/admin/products';
+  // Guarantee all image fields are clean Supabase Storage URLs (never bloated base64)
+  const productToSave = { ...prod };
+  if (productToSave.mainImage && productToSave.mainImage.startsWith('data:')) {
+    productToSave.mainImage = await convertBase64ToStorageUrl(productToSave.mainImage, 'catalog');
+  }
+  if (productToSave.lifestyleImage && productToSave.lifestyleImage.startsWith('data:')) {
+    productToSave.lifestyleImage = await convertBase64ToStorageUrl(productToSave.lifestyleImage, 'catalog');
+  }
+  if (Array.isArray(productToSave.galleryImages)) {
+    productToSave.galleryImages = await Promise.all(
+      productToSave.galleryImages.map(async (img: string) => {
+        if (img && img.startsWith('data:')) {
+          return await convertBase64ToStorageUrl(img, 'catalog');
+        }
+        return img;
+      })
+    );
+  }
+
+  const url = isEdit ? `/api/admin/products/${encodeURIComponent(productToSave.id)}` : '/api/admin/products';
   const method = isEdit ? 'PUT' : 'POST';
 
   let savedProd: any = null;
@@ -343,7 +496,7 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
       method,
       headers: getAdminAuthHeaders(),
       credentials: 'include',
-      body: JSON.stringify(prod)
+      body: JSON.stringify(productToSave)
     }), 3500, null as any);
     if (res && res.ok) {
       savedProd = await res.json();
@@ -355,7 +508,7 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
   // 2. Direct Supabase upsert with proper schema mapping
   try {
     const client = getSupabase();
-    const sbRow = productToSupabaseRow(prod);
+    const sbRow = productToSupabaseRow(productToSave);
     if (sbRow) {
       const { data, error } = await client.from('products').upsert(sbRow, { onConflict: 'id' }).select();
       if (error) {
@@ -368,8 +521,9 @@ export async function saveAdminProduct(prod: any, isEdit: boolean): Promise<any>
     console.warn('Supabase product save notice:', sbErr);
   }
 
+  invalidateClientProductsCache();
   broadcastSync({ type: 'CATALOGUE_UPDATED', timestamp: Date.now() });
-  return savedProd || prod;
+  return savedProd || productToSave;
 }
 
 export async function deleteAdminProduct(id: string, slug?: string): Promise<boolean> {
