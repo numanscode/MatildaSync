@@ -141,7 +141,7 @@ export const OrderStatusSearchBar: React.FC<{
               setQuery(e.target.value);
               if (error) setError(null);
             }}
-            placeholder="track order (e.g. MT-1042)"
+            placeholder="order number or phone"
             className="flex-1 bg-transparent py-2 sm:py-2.5 px-2 text-xs sm:text-sm font-body text-[var(--text-dominant)] placeholder:text-[var(--text-muted)] focus:outline-none uppercase tracking-wider"
           />
 

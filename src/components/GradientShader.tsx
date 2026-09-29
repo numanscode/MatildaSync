@@ -108,24 +108,24 @@ export const GradientShader: React.FC = () => {
 
           // Color Palettes
           vec3 cBgWomen = vec3(0.961, 0.937, 0.902);     // #F5EFE6 warm alabaster beige
-          vec3 cMaroonWomen = vec3(0.478, 0.071, 0.157); // #7A1228 deep maroon
-          vec3 cAmberWomen = vec3(0.722, 0.541, 0.306);  // #B88A4E amber gold
-          vec3 cRoseWomen = vec3(0.85, 0.72, 0.72);      // soft rose quartz
+          vec3 cMaroonWomen = vec3(0.58, 0.05, 0.16); // vivid velvet maroon
+          vec3 cAmberWomen = vec3(0.82, 0.52, 0.18);  // vivid warm amber gold
+          vec3 cRoseWomen = vec3(0.90, 0.60, 0.65);   // vivid soft rose blush
 
           vec3 cBgMen = vec3(0.867, 0.847, 0.812);       // #DDD8CF warm graphite sand
-          vec3 cMaroonMen = vec3(0.36, 0.06, 0.12);      // #5C1221 dark iron wine
-          vec3 cSlateMen = vec3(0.18, 0.21, 0.25);       // deep graphite
-          vec3 cBronzeMen = vec3(0.55, 0.45, 0.35);      // brushed bronze
+          vec3 cMaroonMen = vec3(0.46, 0.07, 0.14);      // rich iron wine
+          vec3 cSlateMen = vec3(0.16, 0.20, 0.26);       // deep graphite
+          vec3 cBronzeMen = vec3(0.68, 0.48, 0.28);      // vivid bronze gold
 
           vec3 cBg = mix(cBgWomen, cBgMen, uMenMode);
           vec3 cMaroon = mix(cMaroonWomen, cMaroonMen, uMenMode);
           vec3 cAccent = mix(cAmberWomen, cBronzeMen, uMenMode);
           vec3 cSoft = mix(cRoseWomen, cSlateMen, uMenMode);
 
-          // Blend gradients gently
-          vec3 col = mix(cBg, cMaroon, blend1 * 0.28);
-          col = mix(col, cAccent, blend2 * 0.18);
-          col = mix(col, cSoft, (w3 * 0.5 + 0.5) * 0.08);
+          // Blend gradients with slightly more vivid contrast & richness
+          vec3 col = mix(cBg, cMaroon, blend1 * 0.46);
+          col = mix(col, cAccent, blend2 * 0.32);
+          col = mix(col, cSoft, (w3 * 0.5 + 0.5) * 0.18);
 
           gl_FragColor = vec4(col, 1.0);
         }
@@ -217,8 +217,8 @@ export const GradientShader: React.FC = () => {
 
             const isMen = collection === 'men';
             const baseColor = isMen ? '#DDD8CF' : '#F5EFE6';
-            const maroon = isMen ? 'rgba(92, 18, 33, 0.16)' : 'rgba(122, 18, 40, 0.18)';
-            const gold = isMen ? 'rgba(100, 110, 120, 0.14)' : 'rgba(184, 138, 78, 0.16)';
+            const maroon = isMen ? 'rgba(92, 18, 33, 0.28)' : 'rgba(135, 18, 42, 0.32)';
+            const gold = isMen ? 'rgba(120, 95, 65, 0.24)' : 'rgba(205, 140, 65, 0.28)';
 
             ctx.fillStyle = baseColor;
             ctx.fillRect(0, 0, w, h);

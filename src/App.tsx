@@ -154,6 +154,10 @@ const AppLayout: React.FC = () => {
               <Route path="/order-success/:orderNumber" element={<OrderConfirmationPage />} />
               <Route path="/order-success" element={<OrderConfirmationPage />} />
               <Route path="/order" element={<OrderConfirmationPage />} />
+              <Route path="/track/:orderNumber" element={<OrderConfirmationPage />} />
+              <Route path="/track" element={<OrderConfirmationPage />} />
+              <Route path="/tracking/:orderNumber" element={<OrderConfirmationPage />} />
+              <Route path="/tracking" element={<OrderConfirmationPage />} />
               
               <Route path="/" element={
                 <>

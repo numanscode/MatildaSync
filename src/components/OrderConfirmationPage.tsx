@@ -81,6 +81,20 @@ export const OrderConfirmationPage: React.FC = () => {
   // Fetch full order data
   useEffect(() => {
     if (!rawOrderNum) {
+      // Check if user has any orders cached locally in this browser
+      try {
+        const localStr = localStorage.getItem('matilda_local_orders');
+        if (localStr) {
+          const localArr = JSON.parse(localStr);
+          if (Array.isArray(localArr) && localArr.length > 0) {
+            const first = localArr[0];
+            if (first?.order_number) {
+              navigate(`/order-confirmation/${first.order_number}`, { replace: true });
+              return;
+            }
+          }
+        }
+      } catch (e) {}
       setLoading(false);
       return;
     }
@@ -107,7 +121,12 @@ export const OrderConfirmationPage: React.FC = () => {
           const localStr = localStorage.getItem('matilda_local_orders');
           if (localStr) {
             const localArr = JSON.parse(localStr);
-            const foundLocally = Array.isArray(localArr) ? localArr.find((o: any) => o.order_number === rawOrderNum) : null;
+            const foundLocally = Array.isArray(localArr) 
+              ? localArr.find((o: any) => 
+                  o.order_number?.toUpperCase() === rawOrderNum.toUpperCase() ||
+                  o.id?.toUpperCase() === rawOrderNum.toUpperCase()
+                ) 
+              : null;
             if (foundLocally && isMounted) {
               setOrder(foundLocally);
               setError(null);
@@ -141,11 +160,11 @@ export const OrderConfirmationPage: React.FC = () => {
         }
 
         if (!order && isMounted) {
-          setError('Order reference could not be found.');
+          setError(`Order "${rawOrderNum}" could not be found. Please double-check your order number.`);
         }
       } catch (err: any) {
         if (isMounted && !order) {
-          setError('Order reference could not be found.');
+          setError(`Order "${rawOrderNum}" could not be found. Please double-check your order number.`);
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -176,8 +195,16 @@ export const OrderConfirmationPage: React.FC = () => {
 
   const handleLookupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (orderIdInput.trim()) {
-      navigate(`/order-confirmation/${orderIdInput.trim().toUpperCase()}`);
+    const clean = orderIdInput.trim().replace(/^[#\s]+/, '');
+    if (clean) {
+      let finalCode = clean.toUpperCase();
+      if (/^\d{3,6}$/.test(clean)) {
+        finalCode = `MT-${clean}`;
+      } else if (/^MT[\s_-]?(\d+)$/i.test(clean)) {
+        const match = clean.match(/^MT[\s_-]?(\d+)$/i);
+        if (match) finalCode = `MT-${match[1]}`;
+      }
+      navigate(`/order-confirmation/${finalCode}`);
       setShowSearchBox(false);
     }
   };
@@ -285,29 +312,42 @@ export const OrderConfirmationPage: React.FC = () => {
         <h1 className="font-display text-2xl sm:text-3xl font-bold lowercase tracking-tight text-[var(--text-dominant)] mb-2">
           track order
         </h1>
-        <p className="text-xs text-[var(--text-muted)] mb-6 lowercase max-w-sm">
-          enter your order number (e.g. <span className="font-mono font-bold text-[var(--border-maroon)]">MT-4821</span>) to view status.
+        <p className="text-xs text-[var(--text-muted)] mb-5 lowercase max-w-sm">
+          enter your order number or phone number to view status.
         </p>
 
-        <form onSubmit={handleLookupSubmit} className="w-full space-y-3 mb-6">
+        <form onSubmit={handleLookupSubmit} className="w-full space-y-3 mb-4">
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="e.g. MT-4821"
+              placeholder="order number or phone"
               value={orderIdInput}
               onChange={(e) => setOrderIdInput(e.target.value.toUpperCase())}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--border-main)] text-xs font-mono uppercase tracking-wider focus:outline-none focus:border-[var(--border-maroon)] text-[var(--text-dominant)]"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--border-main)] text-xs font-mono uppercase tracking-wider focus:outline-none focus:border-[var(--border-maroon)] text-[var(--text-dominant)] shadow-2xs"
             />
             <button
               type="submit"
               disabled={!orderIdInput.trim()}
-              className="px-5 py-2.5 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-bold uppercase hover:bg-[var(--text-dominant)] disabled:opacity-50 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-bold uppercase hover:bg-[var(--text-dominant)] disabled:opacity-50 transition-colors shadow-2xs cursor-pointer"
             >
               track
             </button>
           </div>
           {error && (
-            <p className="text-xs text-red-600 text-left">{error}</p>
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 text-left space-y-2">
+              <p className="font-medium">{error}</p>
+              <div className="pt-1 flex items-center gap-2">
+                <a
+                  href={`https://wa.me/917051227533?text=${encodeURIComponent(`Hi Matilda team, I need help tracking my order (${rawOrderNum || orderIdInput || 'inquiry'}).`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors shadow-2xs"
+                >
+                  <MessageCircle className="w-3 h-3" />
+                  <span>message studio on whatsapp</span>
+                </a>
+              </div>
+            </div>
           )}
         </form>
 
@@ -354,7 +394,7 @@ export const OrderConfirmationPage: React.FC = () => {
           <form onSubmit={handleLookupSubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="Enter Order ID (e.g. MT-8921)"
+              placeholder="Enter order number or phone"
               value={orderIdInput}
               onChange={(e) => setOrderIdInput(e.target.value.toUpperCase())}
               className="flex-1 px-3.5 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-main)] text-xs font-mono uppercase focus:outline-none focus:border-[var(--border-maroon)] text-[var(--text-dominant)]"

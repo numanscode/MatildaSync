@@ -21,7 +21,8 @@ import {
   CheckCircle,
   DollarSign,
   Phone,
-  RotateCw
+  RotateCw,
+  Sparkles
 } from 'lucide-react';
 import { AdminModal } from '../shared/AdminModal';
 import { AdminConfirmModal } from '../shared/AdminConfirmModal';
@@ -151,39 +152,88 @@ export const AdminOrders: React.FC = () => {
     return utr.includes('COD') || method === 'cod';
   };
 
+  const getCustomerFirstName = (fullName: string) => {
+    if (!fullName) return 'there';
+    const clean = fullName.trim().split(' ')[0];
+    return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+  };
+
+  const formatAmount = (amt: any) => {
+    const num = Number(amt) || 0;
+    return `₹${num.toLocaleString('en-IN')}`;
+  };
+
   const getItemsSummaryText = (order: any) => {
     let itemsText = '';
     const itemsList = Array.isArray(order.items) ? order.items : (order.items?.list || []);
     itemsList.forEach((item: any) => {
       const title = item.product?.title || item.title || 'Studio Item';
       const variant = item.selectedVariant?.name ? ` (${item.selectedVariant.name})` : '';
-      itemsText += `• ${item.quantity || 1}x ${title}${variant}\n`;
+      itemsText += `  ▫️ ${item.quantity || 1}x ${title}${variant}\n`;
     });
-    return itemsText || '• 1x Matilda Studio Jewellery Piece\n';
+    return itemsText || '  ▫️ 1x Matilda Jewellery Piece\n';
   };
 
-  // WhatsApp Preset: Order Confirmation (UPI Prepaid vs COD)
-  const sendConfirmation = (order: any) => {
+  // WhatsApp Message Generator: Order Confirmation (UPI Prepaid vs COD)
+  const generateConfirmationMessage = (order: any) => {
     const isCod = isCodOrder(order);
+    const firstName = getCustomerFirstName(order.customer_name);
     const itemsText = getItemsSummaryText(order);
     const trackingLink = `${window.location.origin}/order-confirmation/${order.order_number}`;
+    const totalFormatted = formatAmount(order.total_amount);
+    const addressStr = order.address ? `• *Delivery Address:* ${order.address.replace(/\n+/g, ', ')}\n` : '';
 
-    let text = '';
     if (isCod) {
-      text = `Hi ${order.customer_name || 'there'}, ✨\n\nThank you for shopping with Matilda Studio! ❤️\n\nYour Cash on Delivery (COD) order has been confirmed, and is now being packed with love and care at our studio.\n\n*Order Details:*\n• *Order Number:* ${order.order_number}\n• *Payment Method:* Cash on Delivery (COD 💵)\n• *Amount Payable on Delivery:* ₹${order.total_amount} (Please keep exact cash ready)\n\n*Items in Order:*\n${itemsText}\n*Live Status Tracker:*\n${trackingLink}\n\nWe will notify you with dispatch and tracking details as soon as it's handed over to our courier partner. 🕊️\n\nWarm regards,\nMatilda Studio`;
-    } else {
-      text = `Hi ${order.customer_name || 'there'}, ✨\n\nThank you for shopping with Matilda Studio! ❤️\n\nYour UPI payment of ₹${order.total_amount} has been successfully verified, and your prepaid order is now being packed with love and care at our studio.\n\n*Order Details:*\n• *Order Number:* ${order.order_number}\n• *Payment Method:* UPI / Online Prepaid (Verified ✅)\n• *Total Paid:* ₹${order.total_amount}\n\n*Items in Order:*\n${itemsText}\n*Live Status Tracker:*\n${trackingLink}\n\nWe will notify you with the tracking details as soon as it's handed over to our courier partner. 🕊️\n\nWarm regards,\nMatilda Studio`;
+      return `✨ *MATILDA STUDIO* — Order Confirmed 🕊️\n\n` +
+        `Hi ${firstName},\n\n` +
+        `Thank you for shopping with Matilda Studio. We are pleased to confirm your order! Our artisans are currently preparing and carefully packing your jewellery piece.\n\n` +
+        `📋 *Order Summary:*\n` +
+        `• *Order Number:* #${order.order_number}\n` +
+        `• *Payment Mode:* Cash on Delivery (COD 💵)\n` +
+        `• *Amount to Pay on Arrival:* ${totalFormatted}\n` +
+        addressStr +
+        `\n🛍️ *Selected Pieces:*\n` +
+        itemsText +
+        `\n📍 *Live Status Tracker:*\n` +
+        `${trackingLink}\n\n` +
+        `*Next Steps:*\n` +
+        `We will notify you with your official dispatch and courier tracking number as soon as your parcel is handed over. Please keep exact cash of ${totalFormatted} ready upon delivery.\n\n` +
+        `If you have any questions or custom requests, feel free to reply directly to this chat.\n\n` +
+        `With warm regards,\n*Matilda Studio* · The Valley's Finest Accessories 🤍`;
     }
 
+    return `✨ *MATILDA STUDIO* — Payment Verified & Order Confirmed 🕊️\n\n` +
+      `Hi ${firstName},\n\n` +
+      `Thank you for shopping with Matilda Studio. We have successfully verified your payment of *${totalFormatted}* and confirmed your order! Our artisans are now preparing and safely packaging your jewellery.\n\n` +
+      `📋 *Order Summary:*\n` +
+      `• *Order Number:* #${order.order_number}\n` +
+      `• *Payment Status:* Paid via UPI Prepaid (Verified ✅)\n` +
+      (order.utr_number && !order.utr_number.includes('COD') ? `• *Transaction UTR:* ${order.utr_number}\n` : '') +
+      `• *Total Paid:* ${totalFormatted}\n` +
+      addressStr +
+      `\n🛍️ *Selected Pieces:*\n` +
+      itemsText +
+      `\n📍 *Live Status Tracker:*\n` +
+      `${trackingLink}\n\n` +
+      `*Next Steps:*\n` +
+      `Your parcel has been scheduled for priority dispatch. We will send you another update with your live courier tracking link as soon as it ships out.\n\n` +
+      `If you have any questions or special notes, feel free to reply directly to this chat.\n\n` +
+      `With warm regards,\n*Matilda Studio* · The Valley's Finest Accessories 🤍`;
+  };
+
+  const sendConfirmation = (order: any) => {
+    const text = generateConfirmationMessage(order);
     const encoded = encodeURIComponent(text);
     window.open(`https://wa.me/${getCleanPhone(order.phone)}?text=${encoded}`, '_blank');
   };
 
-  // WhatsApp Preset: Shipped / Dispatched with Tracking Details (UPI Prepaid vs COD)
-  const sendShippedNotification = (order: any, courier = order.courier_name || 'Delhivery Express', tracking = order.tracking_number) => {
+  // WhatsApp Message Generator: Shipped / Dispatched with Tracking Details (UPI Prepaid vs COD)
+  const generateShippedMessage = (order: any, courier = order.courier_name || 'Delhivery Express', tracking = order.tracking_number) => {
     const isCod = isCodOrder(order);
+    const firstName = getCustomerFirstName(order.customer_name);
     const itemsText = getItemsSummaryText(order);
     const liveTrackingUrl = `${window.location.origin}/order-confirmation/${order.order_number}`;
+    const totalFormatted = formatAmount(order.total_amount);
     
     // Direct courier tracking link
     const courierTrackUrl = tracking
@@ -196,29 +246,120 @@ export const AdminOrders: React.FC = () => {
           : `https://www.google.com/search?q=${encodeURIComponent(`${courier} tracking ${tracking}`)}`)
       : '';
 
-    let text = '';
     if (isCod) {
-      text = `Hi ${order.customer_name || 'there'}! ✨\n\nGreat news! Your Cash on Delivery (COD) Matilda Studio order *${order.order_number}* has been shipped and is on its way to you! 📦🕊️\n\n*Dispatch Details:*\n• *Courier Partner:* ${courier || 'Delhivery Express'}\n• *Tracking AWB:* ${tracking || 'In Transit'}\n${courierTrackUrl ? `• *Direct Tracking Link:* ${courierTrackUrl}\n` : ''}• *Payment Status:* Cash on Delivery (COD)\n• *Cash to Collect:* ₹${order.total_amount} (Please pay exact cash to the delivery agent 💵)\n\n*Items in Package:*\n${itemsText}\n*Live Studio Tracker:*\n${liveTrackingUrl}\n\nEstimated delivery is 3-5 business days. Please keep ₹${order.total_amount} ready for delivery. Feel free to message us here if you have any questions!\n\nWith love,\nMatilda Studio ❤️`;
-    } else {
-      text = `Hi ${order.customer_name || 'there'}! ✨\n\nGreat news! Your prepaid Matilda Studio order *${order.order_number}* has been shipped and is on its way to you! 📦🕊️\n\n*Dispatch Details:*\n• *Courier Partner:* ${courier || 'Delhivery Express'}\n• *Tracking AWB:* ${tracking || 'In Transit'}\n${courierTrackUrl ? `• *Direct Tracking Link:* ${courierTrackUrl}\n` : ''}• *Payment Status:* Paid via UPI Prepaid (No payment required on delivery ✅)\n\n*Items in Package:*\n${itemsText}\n*Live Studio Tracker:*\n${liveTrackingUrl}\n\nEstimated delivery is 3-5 business days. Please feel free to message us here if you have any questions!\n\nWith love,\nMatilda Studio ❤️`;
+      return `📦 *MATILDA STUDIO* — Your Order has been Shipped! 🕊️✨\n\n` +
+        `Hi ${firstName},\n\n` +
+        `Great news! Your Matilda Studio order *#${order.order_number}* has been packaged with care and handed over to our courier partner. It is now speeding its way to your doorstep!\n\n` +
+        `🚚 *Shipping & Dispatch Details:*\n` +
+        `• *Courier Partner:* ${courier || 'Delhivery Express'}\n` +
+        `• *Tracking Number (AWB):* ${tracking || 'In Transit'}\n` +
+        (courierTrackUrl ? `• *Direct Courier Tracking Link:* ${courierTrackUrl}\n` : '') +
+        `• *Payment Mode:* Cash on Delivery (COD)\n` +
+        `• *Amount to Pay Courier Agent:* ${totalFormatted} (Please keep exact cash ready 💵)\n` +
+        (order.address ? `• *Delivery Address:* ${order.address.replace(/\n+/g, ', ')}\n` : '') +
+        `\n🛍️ *Package Contents:*\n` +
+        itemsText +
+        `\n📍 *Matilda Live Order Tracker:*\n` +
+        `${liveTrackingUrl}\n\n` +
+        `⏱️ *Estimated Delivery:* 3 to 5 business days (1–2 days within J&K).\n\n` +
+        `Should you have any questions or delivery instructions, simply reply to this WhatsApp message.\n\n` +
+        `With warm love,\n*Matilda Studio* · Handcrafted with Care ❤️`;
     }
 
+    return `📦 *MATILDA STUDIO* — Your Order has been Shipped! 🕊️✨\n\n` +
+      `Hi ${firstName},\n\n` +
+      `Great news! Your prepaid Matilda Studio order *#${order.order_number}* has been packaged with care and handed over to our courier partner. It is now speeding its way to your doorstep!\n\n` +
+      `🚚 *Shipping & Dispatch Details:*\n` +
+      `• *Courier Partner:* ${courier || 'Delhivery Express'}\n` +
+      `• *Tracking Number (AWB):* ${tracking || 'In Transit'}\n` +
+      (courierTrackUrl ? `• *Direct Courier Tracking Link:* ${courierTrackUrl}\n` : '') +
+      `• *Payment Status:* Paid via UPI Prepaid (No payment required on delivery ✅)\n` +
+      (order.address ? `• *Delivery Address:* ${order.address.replace(/\n+/g, ', ')}\n` : '') +
+      `\n🛍️ *Package Contents:*\n` +
+      itemsText +
+      `\n📍 *Matilda Live Order Tracker:*\n` +
+      `${liveTrackingUrl}\n\n` +
+      `⏱️ *Estimated Delivery:* 3 to 5 business days (1–2 days within J&K).\n\n` +
+      `Should you have any questions or delivery instructions, simply reply to this WhatsApp message.\n\n` +
+      `With warm love,\n*Matilda Studio* · Handcrafted with Care ❤️`;
+  };
+
+  const sendShippedNotification = (order: any, courier = order.courier_name || 'Delhivery Express', tracking = order.tracking_number) => {
+    const text = generateShippedMessage(order, courier, tracking);
     const encoded = encodeURIComponent(text);
     window.open(`https://wa.me/${getCleanPhone(order.phone)}?text=${encoded}`, '_blank');
   };
 
-  // WhatsApp Preset: Rejection Notification (UPI Prepaid vs COD)
-  const sendRejectionNotification = (order: any, reason: string) => {
+  // WhatsApp Message Generator: Rejection Notification (UPI Prepaid vs COD)
+  const generateRejectionMessage = (order: any, reason: string) => {
     const isCod = isCodOrder(order);
-    let text = '';
+    const firstName = getCustomerFirstName(order.customer_name);
+    const trackingLink = `${window.location.origin}/order-confirmation/${order.order_number}`;
+
     if (isCod) {
-      text = `Hi ${order.customer_name || 'there'},\n\nRegarding your Cash on Delivery (COD) Matilda Studio order *${order.order_number}*:\n\nWe could not process this COD order due to the following reason:\n• *Reason:* ${reason}\n\nIf you would like to switch to UPI prepaid payment or update your delivery details, please reply to this chat and our team will gladly assist you.\n\nWarm regards,\nMatilda Studio`;
-    } else {
-      text = `Hi ${order.customer_name || 'there'},\n\nRegarding your prepaid Matilda Studio order *${order.order_number}*:\n\nWe could not process this order due to the following reason:\n• *Reason:* ${reason}\n\nIf you have already made the UPI payment or feel this is an error, please reply to this chat with your payment screenshot or transaction reference (${order.utr_number || 'N/A'}) and our team will gladly assist you.\n\nWarm regards,\nMatilda Studio`;
+      return `⚠️ *MATILDA STUDIO* — Update Regarding Order #${order.order_number}\n\n` +
+        `Dear ${firstName},\n\n` +
+        `We are writing to update you regarding your Cash on Delivery (COD) order *#${order.order_number}*.\n\n` +
+        `Unfortunately, we were unable to process this order due to the following reason:\n` +
+        `📌 *Reason:* ${reason || 'Address or pincode verification pending'}\n\n` +
+        `*How We Can Assist You:*\n` +
+        `• If you would like to provide an updated delivery address or alternate contact number, please reply to this chat.\n` +
+        `• If you prefer to switch to prepaid UPI payment, our studio team can instantly assist you with a secure payment link.\n\n` +
+        `You can review your order status anytime here:\n${trackingLink}\n\n` +
+        `Please reply directly to this chat and our customer team will be happy to resolve this for you right away.\n\n` +
+        `Warm regards,\n*Matilda Studio Support Team* 🤍`;
     }
 
+    return `⚠️ *MATILDA STUDIO* — Action Required: Order #${order.order_number}\n\n` +
+      `Dear ${firstName},\n\n` +
+      `We are writing to update you regarding your Matilda Studio order *#${order.order_number}*.\n\n` +
+      `We were unable to complete verification for your order due to the following reason:\n` +
+      `📌 *Reason:* ${reason || 'Payment verification / UTR mismatch'}\n\n` +
+      `*Next Steps to Complete Your Order:*\n` +
+      (order.utr_number && !order.utr_number.includes('COD') ? `• Submitted Reference / UTR: ${order.utr_number}\n` : '') +
+      `• If your account was debited, please reply with a quick screenshot or banking transaction receipt so we can manually approve your order immediately.\n` +
+      `• If an erroneous charge occurred, please be assured of our full assistance with bank verification or instant reversal.\n\n` +
+      `You can review your order status anytime here:\n${trackingLink}\n\n` +
+      `Please reply directly to this chat and our studio team will resolve this for you promptly.\n\n` +
+      `Warm regards,\n*Matilda Studio Support Team* 🤍`;
+  };
+
+  const sendRejectionNotification = (order: any, reason: string) => {
+    const text = generateRejectionMessage(order, reason);
     const encoded = encodeURIComponent(text);
     window.open(`https://wa.me/${getCleanPhone(order.phone)}?text=${encoded}`, '_blank');
+  };
+
+  // WhatsApp Message Generator: Delivered Follow-Up & Care Guide
+  const generateDeliveredMessage = (order: any) => {
+    const firstName = getCustomerFirstName(order.customer_name);
+    const itemsText = getItemsSummaryText(order);
+
+    return `🎉 *MATILDA STUDIO* — Package Delivered! 🕊️✨\n\n` +
+      `Hi ${firstName},\n\n` +
+      `Our delivery partner reports that your order *#${order.order_number}* has arrived safely! We hope you love your new Matilda piece as much as we loved crafting it.\n\n` +
+      `🛍️ *Delivered Items:*\n` +
+      itemsText +
+      `\n💎 *Jewellery Care Guide:*\n` +
+      `• Avoid direct contact with moisture, perfumes, and chemical lotions.\n` +
+      `• Store in an airtight pouch or box when not wearing.\n` +
+      `• Gently polish with a dry, soft microfiber cloth to preserve its brilliant silver lustre.\n\n` +
+      `📸 *Share Your Look:*\n` +
+      `We would love to see how you style it! Tag us on Instagram *@matilda.store* for a chance to be featured in our community edit.\n\n` +
+      `If you need any sizing adjustments or have any feedback, reply to this chat anytime — our team is always here to assist you.\n\n` +
+      `Warmest thanks,\n*Matilda Studio* · The Valley 🤍`;
+  };
+
+  const sendDeliveredNotification = (order: any) => {
+    const text = generateDeliveredMessage(order);
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/${getCleanPhone(order.phone)}?text=${encoded}`, '_blank');
+  };
+
+  const getDirectChatUrl = (order: any) => {
+    const firstName = getCustomerFirstName(order.customer_name);
+    const text = `Hi ${firstName}! 👋 Reaching out from Matilda Studio regarding your order *#${order.order_number}*. How may we assist you today?`;
+    return `https://wa.me/${getCleanPhone(order.phone)}?text=${encodeURIComponent(text)}`;
   };
 
   const openShippingModal = (order: any) => {
@@ -644,9 +785,19 @@ export const AdminOrders: React.FC = () => {
 
                         {/* Status: Delivered */}
                         {normStatus === 'delivered' && (
-                          <div className="flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full font-micro uppercase tracking-widest text-[9px] font-bold">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>order delivered successfully</span>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full font-micro uppercase tracking-widest text-[9px] font-bold">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>delivered successfully</span>
+                            </div>
+                            <button
+                              onClick={() => sendDeliveredNotification(order)}
+                              className="w-full flex items-center justify-center gap-1.5 border border-emerald-600 text-emerald-700 bg-white font-micro uppercase tracking-widest text-[9px] py-1.5 rounded-full hover:bg-emerald-600 hover:text-white transition-all font-bold shadow-2xs"
+                              title="Send Delivered Care & Feedback WhatsApp Message"
+                            >
+                              <Sparkles className="w-3 h-3 text-emerald-600" />
+                              <span>whatsapp review & care note</span>
+                            </button>
                           </div>
                         )}
 
@@ -673,7 +824,7 @@ export const AdminOrders: React.FC = () => {
 
                   {/* Direct WhatsApp Chat Link */}
                   <a 
-                    href={`https://wa.me/${getCleanPhone(order.phone)}`} 
+                    href={getDirectChatUrl(order)} 
                     target="_blank" 
                     rel="noreferrer" 
                     className="w-full flex items-center justify-center gap-1.5 text-center border border-[var(--border-admin)] text-[var(--border-admin)] font-micro uppercase tracking-widest text-[9px] py-1.5 rounded-full hover:bg-[var(--border-admin)] hover:text-white transition-colors"
@@ -753,7 +904,7 @@ export const AdminOrders: React.FC = () => {
             <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-3">
               <div className="text-[11px] text-gray-700">
                 <span className="font-bold block">Notify via WhatsApp</span>
-                <span className="text-gray-500 text-[10px]">Open WhatsApp chat with pre-written rejection details</span>
+                <span className="text-gray-500 text-[10px]">Open WhatsApp chat with enhanced customer resolution message</span>
               </div>
               <input
                 type="checkbox"
@@ -762,6 +913,30 @@ export const AdminOrders: React.FC = () => {
                 className="w-4 h-4 rounded text-red-600 focus:ring-red-500 cursor-pointer"
               />
             </div>
+
+            {sendRejectionWhatsApp && rejectionReason.trim() && (
+              <div className="p-3 rounded-xl bg-red-50/60 border border-red-200 text-[11px] text-gray-700 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-red-900 text-[10px] uppercase font-micro tracking-wider">
+                    WhatsApp Message Preview
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = generateRejectionMessage(rejectionModalOrder, rejectionReason);
+                      navigator.clipboard.writeText(text);
+                    }}
+                    className="text-[10px] text-red-700 hover:text-red-900 font-semibold flex items-center gap-1 cursor-pointer bg-white px-2 py-0.5 rounded border border-red-200"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>copy</span>
+                  </button>
+                </div>
+                <pre className="text-[11px] text-gray-700 whitespace-pre-wrap font-sans bg-white p-2.5 rounded-lg border border-red-150 max-h-32 overflow-y-auto leading-relaxed shadow-2xs">
+                  {generateRejectionMessage(rejectionModalOrder, rejectionReason)}
+                </pre>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2 pt-2">
               <button
@@ -841,16 +1016,27 @@ export const AdminOrders: React.FC = () => {
             </div>
 
             {/* Preview of Shipped WhatsApp Message */}
-            <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[11px] text-gray-600 space-y-1">
-              <span className="font-bold text-gray-800 flex items-center gap-1">
-                <Send className="w-3 h-3 text-emerald-600" />
-                <span>WhatsApp Shipped Preset ({isCodOrder(shippingModalOrder) ? 'COD' : 'UPI Prepaid'}) Preview</span>
-              </span>
-              <p className="italic text-gray-500 line-clamp-3">
-                {isCodOrder(shippingModalOrder)
-                  ? `"Hi ${shippingModalOrder.customer_name}! Great news! Your Cash on Delivery (COD) order ${shippingModalOrder.order_number} has been shipped via ${courierName || 'Delhivery Express'}... Amount to collect: ₹${shippingModalOrder.total_amount}"`
-                  : `"Hi ${shippingModalOrder.customer_name}! Great news! Your prepaid order ${shippingModalOrder.order_number} has been shipped via ${courierName || 'Delhivery Express'}... Paid via UPI Prepaid"`}
-              </p>
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[11px] text-gray-600 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-800 flex items-center gap-1.5 text-xs">
+                  <Send className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>WhatsApp Shipped Notification Preview</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const previewText = generateShippedMessage(shippingModalOrder, courierName, trackingNumber);
+                    navigator.clipboard.writeText(previewText);
+                  }}
+                  className="text-[10px] text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer bg-white px-2 py-0.5 rounded border border-emerald-200"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>copy text</span>
+                </button>
+              </div>
+              <pre className="text-[11px] text-gray-700 whitespace-pre-wrap font-sans bg-white p-3 rounded-lg border border-gray-200 max-h-40 overflow-y-auto leading-relaxed shadow-2xs">
+                {generateShippedMessage(shippingModalOrder, courierName, trackingNumber)}
+              </pre>
             </div>
 
             <div className="flex flex-col gap-2 pt-2">
@@ -892,7 +1078,18 @@ export const AdminOrders: React.FC = () => {
                 <div>
                   <h4 className="font-micro uppercase tracking-widest text-[10px] text-gray-400 mb-2 border-b pb-1">Customer Details</h4>
                   <p><strong>Name:</strong> {selectedOrder.customer_name}</p>
-                  <p><strong>Phone:</strong> +91 {selectedOrder.phone}</p>
+                  <p className="flex items-center gap-2">
+                    <span><strong>Phone:</strong> +91 {selectedOrder.phone}</span>
+                    <a
+                      href={getDirectChatUrl(selectedOrder)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all font-semibold"
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      <span>chat</span>
+                    </a>
+                  </p>
                   <p><strong>Address:</strong> {selectedOrder.address}</p>
                   {selectedOrder.pincode && <p><strong>Pincode:</strong> {selectedOrder.pincode}</p>}
                 </div>
@@ -998,12 +1195,31 @@ export const AdminOrders: React.FC = () => {
                       )}
 
                       {normSelectedStatus === 'shipped' && (
+                        <>
+                          <button
+                            onClick={() => sendShippedNotification(selectedOrder)}
+                            className="px-3.5 py-2 border border-blue-600 text-blue-700 bg-blue-50 rounded-full font-micro uppercase tracking-widest text-[9px] hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1.5 font-bold"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>resend shipped whatsapp</span>
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatus(selectedOrder.id || selectedOrder.order_number, 'delivered')}
+                            className="px-3.5 py-2 border border-emerald-600 text-emerald-700 bg-emerald-50 rounded-full font-micro uppercase tracking-widest text-[9px] hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-1.5 font-bold"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            <span>mark delivered</span>
+                          </button>
+                        </>
+                      )}
+
+                      {normSelectedStatus === 'delivered' && (
                         <button
-                          onClick={() => handleUpdateStatus(selectedOrder.id || selectedOrder.order_number, 'delivered')}
+                          onClick={() => sendDeliveredNotification(selectedOrder)}
                           className="px-3.5 py-2 border border-emerald-600 text-emerald-700 bg-emerald-50 rounded-full font-micro uppercase tracking-widest text-[9px] hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-1.5 font-bold"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          <span>mark delivered</span>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>whatsapp review & care note</span>
                         </button>
                       )}
 

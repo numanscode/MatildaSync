@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCollection } from '../context/CollectionContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Check, UploadCloud, Truck, Loader2, QrCode, Banknote, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Copy, Check, UploadCloud, Truck, Loader2, QrCode, Banknote, ShieldCheck, AlertCircle } from 'lucide-react';
 import { lookupPincode, calculateDelhiveryShipping, ShippingCalculation } from '../lib/shipping';
 import { submitOrder, getSupabase } from '../lib/supabaseClient';
 import { uploadFileToStorage } from '../lib/adminApi';
@@ -23,6 +23,7 @@ export const CheckoutPage: React.FC = () => {
   });
   
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
+  const [codNotice, setCodNotice] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -277,8 +278,8 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
 
-    if (isCOD && !isCodEligible) {
-      setError(`cash on delivery is only available for orders up to ₹${MAX_COD_AMOUNT}. please choose UPI or reduce items.`);
+    if (isCOD || paymentMethod === 'cod') {
+      setError('cash on delivery is unavailable for now. please choose UPI / Online payment.');
       return;
     }
 
@@ -527,10 +528,10 @@ export const CheckoutPage: React.FC = () => {
             </h2>
 
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 type="button"
-                onClick={() => { setPaymentMethod('upi'); setError(''); }}
+                onClick={() => { setPaymentMethod('upi'); setError(''); setCodNotice(null); }}
                 className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
                   paymentMethod === 'upi'
                     ? 'border-[var(--border-maroon)] bg-[var(--bg-primary)] ring-1 ring-[var(--border-maroon)] shadow-sm'
@@ -549,25 +550,43 @@ export const CheckoutPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => { setPaymentMethod('cod'); setError(''); }}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer relative overflow-hidden ${
-                  paymentMethod === 'cod'
-                    ? 'border-[var(--border-maroon)] bg-[var(--bg-primary)] ring-1 ring-[var(--border-maroon)] shadow-sm'
-                    : 'border-[var(--border-main)]/20 bg-[var(--bg-primary)]/40 hover:border-[var(--border-main)]/40 opacity-75'
-                }`}
+                onClick={() => {
+                  setPaymentMethod('upi');
+                  setCodNotice('cash on delivery is unavailable for now. please pay via UPI / Online payment.');
+                  setError('');
+                }}
+                className="p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer relative overflow-hidden border-[var(--border-main)]/20 bg-[var(--bg-primary)]/40 hover:border-amber-600/40 hover:bg-amber-500/5 group"
+                title="Cash on Delivery is unavailable for now"
               >
                 <div className="flex items-center justify-between w-full">
-                  <Banknote className={`w-4 h-4 ${paymentMethod === 'cod' ? 'text-[var(--border-maroon)]' : 'text-[var(--text-muted)]'}`} />
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--border-maroon)]/10 text-[var(--border-maroon)]">
-                    ≤ ₹400
+                  <Banknote className="w-4 h-4 text-[var(--text-muted)] group-hover:text-amber-700 transition-colors" />
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
+                    unavailable for now
                   </span>
                 </div>
                 <div>
                   <p className="font-display text-xs font-bold lowercase text-[var(--text-dominant)]">Cash on Delivery</p>
-                  <p className="text-[10px] text-[var(--text-muted)] lowercase">pay in cash on arrival</p>
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium lowercase">unavailable for now</p>
                 </div>
               </button>
             </div>
+
+            {/* COD Unavailable Alert Message */}
+            {codNotice && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5"
+              >
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-display font-bold lowercase">cash on delivery is unavailable for now</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed lowercase">
+                    we have paused COD orders for now. please complete your order seamlessly using the instant UPI / Online payment method above.
+                  </p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Total Summary Box */}
             <div className="mb-6 w-full space-y-2 bg-[var(--bg-primary)]/70 p-4 rounded-2xl border border-[var(--border-main)]/15 text-xs">

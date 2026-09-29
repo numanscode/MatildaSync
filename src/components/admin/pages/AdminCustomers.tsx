@@ -78,6 +78,12 @@ export const AdminCustomers: React.FC = () => {
     return raw.length === 10 ? `91${raw}` : raw.replace(/^91/, '91');
   };
 
+  const getCustomerDirectChatUrl = (c: any) => {
+    const firstName = c.name ? c.name.trim().split(' ')[0] : 'there';
+    const text = `Hi ${firstName}! ✨ Reaching out from Matilda Studio. We're here to assist you with any questions about your orders or our jewellery collection.`;
+    return `https://wa.me/${getCleanPhone(c.phone)}?text=${encodeURIComponent(text)}`;
+  };
+
   const filteredCustomers = useMemo(() => {
     return customers.filter(c => {
       const matchesSearch = 
@@ -187,7 +193,7 @@ export const AdminCustomers: React.FC = () => {
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <a 
-                        href={`https://wa.me/${getCleanPhone(c.phone)}`}
+                        href={getCustomerDirectChatUrl(c)}
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"

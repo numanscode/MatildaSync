@@ -1007,60 +1007,107 @@ async function findOrderInSupabaseOrMemory(orderQuery: string) {
   const raw = String(orderQuery || '').trim();
   if (!raw) return null;
 
-  const upper = raw.toUpperCase();
-  const cleanDigits = raw.replace(/[^0-9]/g, '');
-  const withPrefix = upper.startsWith('MT-') ? upper : `MT-${upper}`;
+  // Normalize query variations:
+  // #MT-1560 -> MT-1560, mt 1560 -> MT-1560, 1560 -> MT-1560, MT1560 -> MT-1560
+  const cleanRaw = raw.replace(/^[#\s]+/, '').trim();
+  const upper = cleanRaw.toUpperCase();
+  const cleanDigits = cleanRaw.replace(/[^0-9]/g, '');
 
-  // 1. Search in-memory store
-  const memMatch = inMemoryOrders.find(o => {
+  let normalizedMT = upper;
+  if (/^MT[\s_-]?(\d+)$/i.test(cleanRaw)) {
+    const match = cleanRaw.match(/^MT[\s_-]?(\d+)$/i);
+    if (match) normalizedMT = `MT-${match[1]}`;
+  } else if (/^\d{3,6}$/.test(cleanRaw)) {
+    normalizedMT = `MT-${cleanRaw}`;
+  }
+
+  const searchCandidates = Array.from(new Set([
+    upper,
+    normalizedMT,
+    upper.startsWith('MT-') ? upper : `MT-${upper}`,
+    cleanRaw,
+    raw
+  ])).filter(Boolean);
+
+  const isMatch = (o: any) => {
+    if (!o) return false;
     const oNum = (o.order_number || '').toUpperCase();
     const oId = (o.id || '').toUpperCase();
     const oPhone = String(o.phone || '').replace(/[^0-9]/g, '');
     const oTrack = (o.tracking_number || '').toUpperCase();
+    const oName = (o.customer_name || '').toLowerCase();
+    const qLower = cleanRaw.toLowerCase();
 
-    return oNum === upper || 
-           oNum === withPrefix || 
-           oId === upper || 
-           oId === raw.toUpperCase() ||
-           (oTrack && (oTrack === upper || oTrack.includes(upper))) ||
-           (cleanDigits.length >= 4 && oNum.includes(cleanDigits)) ||
-           (cleanDigits.length >= 10 && (oPhone.endsWith(cleanDigits) || cleanDigits.endsWith(oPhone)));
-  });
+    // Direct match against candidates
+    for (const cand of searchCandidates) {
+      if (cand && (oNum === cand || oId === cand || (oTrack && oTrack === cand))) {
+        return true;
+      }
+    }
+
+    // Tracking number substring
+    if (oTrack && upper.length >= 4 && oTrack.includes(upper)) return true;
+
+    // Digits match on order number
+    if (cleanDigits.length >= 3 && oNum.replace(/[^0-9]/g, '') === cleanDigits) return true;
+    if (cleanDigits.length >= 4 && oNum.includes(cleanDigits)) return true;
+
+    // Phone match
+    if (cleanDigits.length >= 10 && (oPhone.endsWith(cleanDigits) || cleanDigits.endsWith(oPhone))) return true;
+
+    // Customer name match if query is at least 3 letters
+    if (qLower.length >= 3 && (oName === qLower || oName.includes(qLower))) return true;
+
+    return false;
+  };
+
+  // 1. Search in-memory store
+  const memMatch = inMemoryOrders.find(isMatch);
   if (memMatch) return memMatch;
 
-  // 2. Query Supabase
+  // 2. Check fresh disk orders in case updated by seeds or background tasks
+  const diskOrders = loadPersistedOrders();
+  const diskMatch = diskOrders.find(isMatch);
+  if (diskMatch) {
+    if (!inMemoryOrders.some(o => o.order_number === diskMatch.order_number || o.id === diskMatch.id)) {
+      inMemoryOrders.unshift(diskMatch);
+    }
+    return diskMatch;
+  }
+
+  // 3. Query Supabase Cloud Database
   try {
     const supabase = initServerSupabase();
     if (supabase) {
-      // 2a. Direct lookup
-      const { data: directMatch } = await supabase
-        .from('orders')
-        .select('*')
-        .or(`order_number.eq.${withPrefix},order_number.eq.${upper},id.eq.${raw},id.eq.${upper}`)
-        .maybeSingle();
+      // 3a. Direct lookup on order_number and id
+      const safeMT = normalizedMT.replace(/[^A-Z0-9-]/g, '');
+      const safeUpper = upper.replace(/[^A-Z0-9-]/g, '');
+      
+      const filterParts: string[] = [];
+      if (safeMT) filterParts.push(`order_number.eq.${safeMT}`);
+      if (safeUpper && safeUpper !== safeMT) filterParts.push(`order_number.eq.${safeUpper}`);
+      if (cleanDigits && cleanDigits.length >= 10) filterParts.push(`phone.eq.${cleanDigits}`);
+      filterParts.push(`id.eq.${safeUpper || safeMT}`);
 
-      if (directMatch) {
-        inMemoryOrders.unshift(directMatch);
-        persistOrdersToDisk(inMemoryOrders);
-        return directMatch;
+      if (filterParts.length > 0) {
+        const { data: directMatch } = await supabase
+          .from('orders')
+          .select('*')
+          .or(filterParts.join(','))
+          .maybeSingle();
+
+        if (directMatch) {
+          inMemoryOrders.unshift(directMatch);
+          persistOrdersToDisk(inMemoryOrders);
+          return directMatch;
+        }
       }
 
-      // 2b. Broader query fallback
-      const { data: allOrders } = await supabase.from('orders').select('*').limit(100);
+      // 3b. Broader query fallback with match filter
+      const { data: allOrders } = await supabase.from('orders').select('*').limit(200);
       if (Array.isArray(allOrders)) {
         for (const data of allOrders) {
-          const dNum = (data.order_number || '').toUpperCase();
-          const dId = (data.id || '').toUpperCase();
-          const dPhone = String(data.phone || '').replace(/[^0-9]/g, '');
-          const dTrack = (data.tracking_number || '').toUpperCase();
-
-          if (dNum === upper || 
-              dNum === withPrefix || 
-              dId === upper || 
-              dId === raw.toUpperCase() ||
-              (dTrack && (dTrack === upper || dTrack.includes(upper))) ||
-              (cleanDigits.length >= 4 && dNum.includes(cleanDigits)) ||
-              (cleanDigits.length >= 10 && (dPhone.endsWith(cleanDigits) || cleanDigits.endsWith(dPhone)))) {
+          if (isMatch(data)) {
             inMemoryOrders.unshift(data);
             persistOrdersToDisk(inMemoryOrders);
             return data;
@@ -1094,7 +1141,7 @@ app.get(["/api/orders/status", "/orders/status"], async (req, res) => {
   const order = await findOrderInSupabaseOrMemory(orderNumber);
   if (!order) {
     return res.status(404).json({ 
-      error: `Order "${orderNumber}" not found. Please double-check your order number (e.g. MT-1042).` 
+      error: `Order "${orderNumber}" not found. Please verify your order number or phone number.` 
     });
   }
 

@@ -1,14 +1,16 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCollection } from '../context/CollectionContext';
 import { Product } from '../types';
-import { ShoppingBag, ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductImage } from './ProductImage';
 
 export const ProductGrid: React.FC = () => {
   const { collection, setCollection, openProductModal, products, categories, openBrand, isLoading } = useCollection();
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 8;
   
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -39,6 +41,51 @@ export const ProductGrid: React.FC = () => {
     });
   }, [products, collection, activeCategory, categories, inStockOnly]);
 
+  // Reset to first page when filtering or switching edits to optimize resources
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [collection, activeCategory, inStockOnly]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProducts, safeCurrentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || newPage === safeCurrentPage) return;
+    setCurrentPage(newPage);
+    const shopEl = document.getElementById('shop');
+    if (shopEl) {
+      const yOffset = -80;
+      const y = shopEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }
+  };
+
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    pages.push(1);
+    if (safeCurrentPage > 3) {
+      pages.push('...');
+    }
+    const start = Math.max(2, safeCurrentPage - 1);
+    const end = Math.min(totalPages - 1, safeCurrentPage + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (safeCurrentPage < totalPages - 2) {
+      pages.push('...');
+    }
+    pages.push(totalPages);
+    return pages;
+  }, [totalPages, safeCurrentPage]);
+
   // Dynamic filter tabs based on categories list + 'all'
   const filterTabs = useMemo(() => [
     { id: 'all', name: 'All Items', slug: 'all' },
@@ -48,6 +95,7 @@ export const ProductGrid: React.FC = () => {
   const resetAllFilters = () => {
     setActiveCategory('all');
     setInStockOnly(false);
+    setCurrentPage(1);
   };
 
   return (
@@ -83,6 +131,12 @@ export const ProductGrid: React.FC = () => {
             
             <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-semibold lowercase">
               <span>{filteredProducts.length} items</span>
+              {totalPages > 1 && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>page {safeCurrentPage} of {totalPages}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -183,25 +237,97 @@ export const ProductGrid: React.FC = () => {
             ))}
           </div>
         ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${collection}-${activeCategory}-${inStockOnly}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
-            >
-              {filteredProducts.map((product, idx) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  index={idx}
-                  onOpenModal={() => openProductModal(product)}
-                />
-              ))}
-            </motion.div>
-          </AnimatePresence>
+          <>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${collection}-${activeCategory}-${inStockOnly}-page-${safeCurrentPage}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
+              >
+                {paginatedProducts.map((product, idx) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    index={(safeCurrentPage - 1) * ITEMS_PER_PAGE + idx}
+                    onOpenModal={() => openProductModal(product)}
+                  />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Bottom of Products: Page-based Navigation */}
+            {totalPages > 1 && (
+              <div className="mt-12 sm:mt-16 pt-8 border-t border-[var(--border-main)]/15 flex flex-col sm:flex-row items-center justify-between gap-5">
+                <div className="text-xs text-[var(--text-muted)] lowercase font-medium">
+                  showing <span className="font-semibold text-[var(--text-dominant)]">{(safeCurrentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safeCurrentPage * ITEMS_PER_PAGE, filteredProducts.length)}</span> of <span className="font-semibold text-[var(--text-dominant)]">{filteredProducts.length}</span> pieces
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(safeCurrentPage - 1)}
+                    disabled={safeCurrentPage <= 1}
+                    aria-label="Previous page"
+                    className={`px-4 py-2 rounded-full text-xs font-semibold lowercase transition-all flex items-center gap-1.5 border ${
+                      safeCurrentPage <= 1
+                        ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-muted)]'
+                        : 'border-[var(--border-main)]/30 bg-[var(--card-bg)] text-[var(--text-dominant)] hover:border-[var(--border-maroon)] hover:text-[var(--border-maroon)] shadow-xs cursor-pointer active:scale-95'
+                    }`}
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>back</span>
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {pageNumbers.map((p, idx) => {
+                      if (p === '...') {
+                        return (
+                          <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-[var(--text-muted)] select-none">
+                            …
+                          </span>
+                        );
+                      }
+                      const isCurrent = p === safeCurrentPage;
+                      return (
+                        <button
+                          key={`page-${p}`}
+                          type="button"
+                          onClick={() => handlePageChange(p as number)}
+                          aria-label={`Go to page ${p}`}
+                          aria-current={isCurrent ? 'page' : undefined}
+                          className={`w-8 h-8 rounded-full text-xs font-semibold lowercase transition-all cursor-pointer flex items-center justify-center ${
+                            isCurrent
+                              ? 'bg-[var(--border-maroon)] text-white shadow-xs'
+                              : 'text-[var(--text-muted)] hover:text-[var(--text-dominant)] hover:bg-[var(--card-bg)] active:scale-95'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(safeCurrentPage + 1)}
+                    disabled={safeCurrentPage >= totalPages}
+                    aria-label="Next page"
+                    className={`px-4 py-2 rounded-full text-xs font-semibold lowercase transition-all flex items-center gap-1.5 border ${
+                      safeCurrentPage >= totalPages
+                        ? 'opacity-40 cursor-not-allowed border-transparent text-[var(--text-muted)]'
+                        : 'border-[var(--border-main)]/30 bg-[var(--card-bg)] text-[var(--text-dominant)] hover:border-[var(--border-maroon)] hover:text-[var(--border-maroon)] shadow-xs cursor-pointer active:scale-95'
+                    }`}
+                  >
+                    <span>next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {!isLoading && filteredProducts.length === 0 && (

@@ -8,9 +8,13 @@ import {
   ExternalLink, 
   X, 
   AlertCircle, 
-  ArrowRight 
+  ArrowRight,
+  MessageCircle,
+  Clock,
+  RotateCcw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getLocalOrders, getOrderDetails } from '../lib/supabaseClient';
 
 interface OrderItemSummary {
   title: string;
@@ -56,6 +60,7 @@ export const OrderStatusPanel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [orderResult, setOrderResult] = useState<OrderStatusResult | null>(null);
   const [copiedTracking, setCopiedTracking] = useState(false);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -70,28 +75,196 @@ export const OrderStatusPanel: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const clean = query.trim();
+  // Read local browser orders when panel opens
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const locals = getLocalOrders();
+        if (Array.isArray(locals) && locals.length > 0) {
+          setRecentOrders(locals);
+        }
+      } catch (e) {}
+    }
+  }, [isOpen]);
+
+  // Clean and normalize order query
+  const normalizeQuery = (input: string): string => {
+    const trimmed = input.trim().replace(/^[#\s]+/, '');
+    if (/^\d{3,6}$/.test(trimmed)) {
+      return `MT-${trimmed}`;
+    }
+    const match = trimmed.match(/^MT[\s_-]?(\d+)$/i);
+    if (match) {
+      return `MT-${match[1]}`;
+    }
+    return trimmed;
+  };
+
+  const executeLookup = async (targetCode: string) => {
+    const clean = normalizeQuery(targetCode);
     if (!clean) return;
 
     setLoading(true);
     setError(null);
 
+    // 1. Instant match from LocalStorage (zero latency for current shopper)
+    try {
+      const locals = getLocalOrders();
+      const localMatch = locals.find(
+        (o: any) =>
+          o.order_number?.toUpperCase() === clean.toUpperCase() ||
+          o.id?.toUpperCase() === clean.toUpperCase() ||
+          o.phone?.replace(/[^0-9]/g, '').endsWith(clean.replace(/[^0-9]/g, ''))
+      );
+
+      if (localMatch) {
+        const isCod =
+          localMatch.utr_number?.toUpperCase().includes('COD') ||
+          (typeof localMatch.items === 'object' && localMatch.items?.payment_method === 'cod') ||
+          false;
+        const itemsList = Array.isArray(localMatch.items)
+          ? localMatch.items
+          : Array.isArray(localMatch.items?.list)
+          ? localMatch.items.list
+          : [];
+
+        let stg = 1;
+        let stgName = 'Order Received';
+        let stgDesc = 'Order registered in our system. Awaiting studio accountant payment verification.';
+        if (localMatch.status === 'delivered') {
+          stg = 5;
+          stgName = 'Delivered';
+          stgDesc = 'Package has been safely delivered to customer.';
+        } else if (localMatch.status === 'shipped' || localMatch.tracking_number) {
+          stg = 4;
+          stgName = 'Dispatched / In Transit';
+          stgDesc = 'Package is handed over to the courier and currently in transit to your destination.';
+        } else if ((localMatch.status as string) === 'paid' || (localMatch.status as string) === 'verified') {
+          stg = 2;
+          stgName = 'Payment Verified';
+          stgDesc = 'Payment has been successfully verified. Packaging at the studio.';
+        }
+
+        setOrderResult({
+          order_number: localMatch.order_number || clean,
+          id: localMatch.id,
+          status: localMatch.status || 'pending',
+          stage: stg,
+          stage_name: stgName,
+          stage_description: stgDesc,
+          rejection_reason: localMatch.rejection_reason || null,
+          tracking_info: localMatch.tracking_number || null,
+          tracking_number: localMatch.tracking_number || null,
+          courier_name: localMatch.courier_name || (localMatch.tracking_number ? 'Delhivery Express' : null),
+          customer_name: localMatch.customer_name || 'Valued Customer',
+          total_amount: localMatch.total_amount || 0,
+          created_at: localMatch.created_at || new Date().toISOString(),
+          shipped_at: (localMatch as any).shipped_at || null,
+          is_cod: isCod,
+          address: localMatch.address || null,
+          items_count: itemsList.length > 0 ? itemsList.reduce((s: number, i: any) => s + (Number(i.quantity) || 1), 0) : 1,
+          items: itemsList.map((it: any) => ({
+            title: it.product?.title || it.title || 'Studio Piece',
+            quantity: it.quantity || 1,
+            variant: it.selectedVariant?.name || it.variant || null,
+            price: it.product?.price || it.price || 0,
+            image: it.product?.mainImage || it.image || null
+          }))
+        });
+        setLoading(false);
+        return;
+      }
+    } catch (e) {
+      console.warn('Local check notice:', e);
+    }
+
+    // 2. Query Server API (/api/orders/status)
     try {
       const res = await fetch(`/api/orders/status?order=${encodeURIComponent(clean)}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || `Order "${clean}" not found`);
+      if (res.ok) {
+        const data = await res.json();
+        setOrderResult(data);
+        setLoading(false);
+        return;
       }
+    } catch (apiErr) {
+      console.warn('Server status lookup warning:', apiErr);
+    }
 
-      setOrderResult(data);
-    } catch (err: any) {
-      setError(err?.message || 'Order not found');
-      setOrderResult(null);
-    } finally {
-      setLoading(false);
+    // 3. Client-side Supabase direct fallback
+    try {
+      const sbOrder = await getOrderDetails(clean);
+      if (sbOrder) {
+        const isCod =
+          sbOrder.utr_number?.toUpperCase().includes('COD') ||
+          (typeof sbOrder.items === 'object' && (sbOrder.items as any)?.payment_method === 'cod') ||
+          false;
+        const itemsList = Array.isArray(sbOrder.items)
+          ? sbOrder.items
+          : Array.isArray((sbOrder.items as any)?.list)
+          ? (sbOrder.items as any).list
+          : [];
+
+        let stg = 1;
+        let stgName = 'Order Received';
+        let stgDesc = 'Order registered in our system. Awaiting payment verification.';
+        if (sbOrder.status === 'delivered') {
+          stg = 5;
+          stgName = 'Delivered';
+          stgDesc = 'Delivered to your address.';
+        } else if (sbOrder.status === 'shipped' || sbOrder.tracking_number) {
+          stg = 4;
+          stgName = 'Dispatched / In Transit';
+          stgDesc = 'Handed over to courier and on its way.';
+        } else if (sbOrder.status === 'paid') {
+          stg = 2;
+          stgName = 'Payment Verified';
+          stgDesc = 'Payment confirmed by the studio.';
+        }
+
+        setOrderResult({
+          order_number: sbOrder.order_number || clean,
+          id: sbOrder.id,
+          status: sbOrder.status || 'pending',
+          stage: stg,
+          stage_name: stgName,
+          stage_description: stgDesc,
+          rejection_reason: sbOrder.rejection_reason || null,
+          tracking_info: sbOrder.tracking_number || null,
+          tracking_number: sbOrder.tracking_number || null,
+          courier_name: sbOrder.courier_name || (sbOrder.tracking_number ? 'Delhivery Express' : null),
+          customer_name: sbOrder.customer_name || 'Valued Customer',
+          total_amount: sbOrder.total_amount || 0,
+          created_at: sbOrder.created_at || new Date().toISOString(),
+          shipped_at: (sbOrder as any).shipped_at || null,
+          is_cod: isCod,
+          address: sbOrder.address || null,
+          items_count: itemsList.length > 0 ? itemsList.reduce((s: number, i: any) => s + (Number(i.quantity) || 1), 0) : 1,
+          items: itemsList.map((it: any) => ({
+            title: it.product?.title || it.title || 'Studio Piece',
+            quantity: it.quantity || 1,
+            variant: it.selectedVariant?.name || it.variant || null,
+            price: it.product?.price || it.price || 0,
+            image: it.product?.mainImage || it.image || null
+          }))
+        });
+        setLoading(false);
+        return;
+      }
+    } catch (sbErr) {
+      console.warn('Supabase fallback lookup error:', sbErr);
+    }
+
+    // 4. Truly not found
+    setError(`No order found for "${clean}". Please verify your order number or phone number.`);
+    setOrderResult(null);
+    setLoading(false);
+  };
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (query.trim()) {
+      executeLookup(query);
     }
   };
 
@@ -131,7 +304,10 @@ export const OrderStatusPanel: React.FC = () => {
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setError(null);
+          }}
           className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-[var(--card-bg)]/90 backdrop-blur-md border border-[var(--border-main)]/60 hover:border-[var(--border-maroon)] text-[var(--text-dominant)] text-[11px] sm:text-xs font-medium lowercase tracking-wide shadow-2xs transition-all cursor-pointer"
           title="Track order"
         >
@@ -150,25 +326,32 @@ export const OrderStatusPanel: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-50 cursor-pointer"
+              className="fixed inset-0 bg-black/25 backdrop-blur-[2px] z-50 cursor-pointer"
             />
 
             {/* Floating Enlarged Card anchored to top-left */}
             <motion.div
               ref={panelRef}
-              initial={{ opacity: 0, scale: 0.92, y: -6 }}
+              initial={{ opacity: 0, scale: 0.94, y: -6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: -6 }}
+              exit={{ opacity: 0, scale: 0.94, y: -6 }}
               transition={{ type: "spring", stiffness: 420, damping: 28 }}
-              className="fixed top-3 left-3 sm:top-5 sm:left-6 z-50 w-[calc(100vw-24px)] sm:w-[420px] max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--card-bg)] border border-[var(--border-main)] shadow-2xl p-4 sm:p-5 text-[var(--text-dominant)]"
+              className="fixed top-3 left-3 sm:top-5 sm:left-6 z-50 w-[calc(100vw-24px)] sm:w-[430px] max-h-[88vh] overflow-y-auto rounded-2xl bg-[var(--card-bg)] border border-[var(--border-main)] shadow-2xl p-4 sm:p-5 text-[var(--text-dominant)]"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-[var(--border-main)]/50">
                 <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-[var(--border-maroon)]" />
-                  <span className="font-display text-sm sm:text-base font-bold lowercase tracking-tight">
-                    track order
-                  </span>
+                  <div className="w-6 h-6 rounded-full bg-[var(--border-maroon)]/10 flex items-center justify-center text-[var(--border-maroon)]">
+                    <Truck className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="font-display text-sm sm:text-base font-bold lowercase tracking-tight block">
+                      track order
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)] lowercase block font-sans">
+                      live studio updates & courier dispatch
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -179,8 +362,8 @@ export const OrderStatusPanel: React.FC = () => {
                 </button>
               </div>
 
-              {/* Search Form (No fluff text) */}
-              <form onSubmit={handleSearch} className="mt-3 flex items-center gap-2">
+              {/* Search Form */}
+              <form onSubmit={handleSearch} className="mt-3.5 flex items-center gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none" />
                   <input
@@ -191,14 +374,26 @@ export const OrderStatusPanel: React.FC = () => {
                       setQuery(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="order number (e.g. MT-1042)"
-                    className="w-full bg-[var(--bg-primary)]/40 border border-[var(--border-main)] rounded-xl py-2 pl-8 pr-3 text-xs font-mono uppercase text-[var(--text-dominant)] placeholder:text-[var(--text-muted)] placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-[var(--border-maroon)] transition-colors"
+                    placeholder="order number or phone"
+                    className="w-full bg-[var(--bg-primary)]/50 border border-[var(--border-main)] rounded-xl py-2 pl-8 pr-3 text-xs font-mono uppercase text-[var(--text-dominant)] placeholder:text-[var(--text-muted)] placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-[var(--border-maroon)] transition-colors"
                   />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery('');
+                        setError(null);
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-dominant)] cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
                 <button
                   type="submit"
                   disabled={loading || !query.trim()}
-                  className="px-4 py-2 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-medium lowercase tracking-wider hover:bg-[var(--text-dominant)] disabled:opacity-50 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-semibold lowercase tracking-wider hover:bg-[var(--text-dominant)] disabled:opacity-50 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {loading ? (
                     <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -208,11 +403,54 @@ export const OrderStatusPanel: React.FC = () => {
                 </button>
               </form>
 
-              {/* Error */}
+              {/* Recent Orders in This Browser (if any) */}
+              {recentOrders.length > 0 && !orderResult && (
+                <div className="mt-3 pt-2.5 border-t border-[var(--border-main)]/30">
+                  <span className="text-[10px] text-[var(--text-muted)] lowercase font-medium block mb-1.5">
+                    your recent orders:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {recentOrders.slice(0, 3).map((ro) => (
+                      <button
+                        key={ro.order_number || ro.id}
+                        type="button"
+                        onClick={() => {
+                          setQuery(ro.order_number);
+                          executeLookup(ro.order_number);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--border-maroon)]/10 hover:bg-[var(--border-maroon)] hover:text-white text-[var(--border-maroon)] text-[11px] font-mono font-medium transition-colors cursor-pointer"
+                      >
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>{ro.order_number}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Error Notice with Helpful WhatsApp Support Action */}
               {error && (
-                <div className="mt-3 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  <span className="flex-1 text-[11px]">{error}</span>
+                <div className="mt-3.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="flex-1 text-[11px] leading-relaxed">
+                      <p className="font-semibold">{error}</p>
+                      <p className="text-[10px] opacity-80 mt-1">
+                        If you recently placed your order, it may take 1-2 minutes to register. You can also message our studio directly.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-1 flex items-center gap-2">
+                    <a
+                      href={`https://wa.me/917051227533?text=${encodeURIComponent(`Hi Matilda team, I need help tracking my order (${query.trim() || 'order inquiry'}).`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors shadow-2xs"
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      <span>chat on whatsapp</span>
+                    </a>
+                  </div>
                 </div>
               )}
 
@@ -221,17 +459,22 @@ export const OrderStatusPanel: React.FC = () => {
                 <div className="mt-4 pt-3 border-t border-[var(--border-main)]/50 space-y-3.5">
                   {/* Order ID & Stage Badge */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono font-bold text-sm text-[var(--text-dominant)]">
-                      {orderResult.order_number}
-                    </span>
+                    <div>
+                      <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block">
+                        {orderResult.is_cod ? 'cash on delivery' : 'prepaid UPI'}
+                      </span>
+                      <span className="font-mono font-bold text-sm sm:text-base text-[var(--text-dominant)]">
+                        {orderResult.order_number}
+                      </span>
+                    </div>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
                       orderResult.status === 'delivered'
-                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
                         : orderResult.status === 'shipped' || orderResult.status === 'dispatched'
-                        ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300'
+                        ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/20'
                         : orderResult.status === 'rejected'
-                        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                        : 'bg-[var(--border-maroon)]/15 text-[var(--border-maroon)]'
+                        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/20'
+                        : 'bg-[var(--border-maroon)]/15 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25'
                     }`}>
                       {orderResult.stage_name}
                     </span>
@@ -297,7 +540,7 @@ export const OrderStatusPanel: React.FC = () => {
                           <span className="font-mono text-xs font-semibold">{orderResult.tracking_number}</span>
                           <button
                             onClick={() => handleCopyTracking(orderResult.tracking_number!)}
-                            className="p-0.5 text-sky-700 hover:opacity-80"
+                            className="p-0.5 text-sky-700 hover:opacity-80 cursor-pointer"
                             title="Copy"
                           >
                             {copiedTracking ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
@@ -338,11 +581,24 @@ export const OrderStatusPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* View receipt link */}
-                  <div className="pt-2">
+                  {/* Action buttons: view receipt or track another */}
+                  <div className="pt-2 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOrderResult(null);
+                        setQuery('');
+                        setError(null);
+                      }}
+                      className="w-full py-1.5 rounded-xl border border-[var(--border-main)] hover:border-[var(--border-maroon)] text-[var(--text-dominant)] text-xs font-medium lowercase tracking-wide transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3 text-[var(--border-maroon)]" />
+                      <span>track another</span>
+                    </button>
                     <Link
                       to={`/order-confirmation/${orderResult.order_number}`}
-                      className="w-full py-1.5 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-medium lowercase tracking-wide hover:bg-[var(--text-dominant)] transition-colors flex items-center justify-center gap-1.5"
+                      onClick={() => setIsOpen(false)}
+                      className="w-full py-1.5 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-medium lowercase tracking-wide hover:bg-[var(--text-dominant)] transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
                     >
                       <span>view receipt</span>
                       <ArrowRight className="w-3 h-3" />
