@@ -106,7 +106,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Header, Floating Desktop Buttons */}
       <header className={`sticky md:fixed ${saleActive && !isCheckout ? 'md:top-8' : 'top-0'} left-0 right-0 z-40 w-full transition-all duration-300 md:p-6 pointer-events-none`}>
-        <div className="w-full h-14 sm:h-16 md:h-auto backdrop-blur-xl bg-[var(--bg-primary)]/50 md:backdrop-blur-none md:bg-transparent border-b border-[var(--border-main)]/10 md:border-none shadow-[0_4px_30px_rgba(0,0,0,0.03)] md:shadow-none flex items-center justify-between px-3 sm:px-6 md:px-0 gap-2 pointer-events-auto">
+        <div className="w-full h-14 sm:h-16 md:h-auto backdrop-blur-xl bg-[var(--bg-primary)]/90 md:backdrop-blur-none md:bg-transparent border-b border-[var(--border-main)]/40 md:border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] md:shadow-none flex items-center justify-between px-3 sm:px-6 md:px-0 gap-2 pointer-events-auto">
           
           {/* Left Section: Brand Logo (mobile) & Really Small Order Panel (top-left of page) */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -130,7 +130,7 @@ export const Navbar: React.FC = () => {
                 whileTap={{ scale: 0.92 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 onClick={() => setIsSearchOpen(true)}
-                className="inline-flex items-center justify-center p-2 rounded-full bg-[var(--card-bg)]/80 border border-[var(--border-main)]/30 hover:border-[var(--border-maroon)]/50 text-[var(--text-primary)] transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center p-2 rounded-full bg-[var(--card-bg)] border border-[var(--border-main)]/60 hover:border-[var(--border-maroon)] text-[var(--text-dominant)] transition-colors shadow-2xs cursor-pointer"
                 title="Search products"
               >
                 <Search className="w-3.5 h-3.5 text-[var(--border-maroon)]" />

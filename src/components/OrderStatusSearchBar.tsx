@@ -195,18 +195,18 @@ export const OrderStatusSearchBar: React.FC<{
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="max-w-xl mx-auto mt-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5"
+            className="max-w-xl mx-auto mt-4 p-3.5 rounded-xl bg-[var(--border-maroon)]/8 border border-[var(--border-maroon)]/20 text-[var(--text-dominant)] text-xs flex items-start gap-2.5"
           >
-            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-[var(--border-maroon)] shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-semibold">{error}</p>
-              <p className="text-[11px] opacity-80 mt-0.5">
+              <p className="font-semibold text-[var(--border-maroon)]">{error}</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                 Orders typically start with <strong className="font-mono">MT-</strong> followed by 4 digits. If you just checked out, please allow a moment for the database to sync.
               </p>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-amber-700 dark:text-amber-300 hover:opacity-75 p-1"
+              className="text-[var(--text-muted)] hover:text-[var(--text-dominant)] p-1"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -241,20 +241,8 @@ export const OrderStatusSearchBar: React.FC<{
               </div>
 
               <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                  orderResult.status === 'delivered'
-                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
-                    : orderResult.status === 'shipped' || orderResult.status === 'dispatched'
-                    ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/20'
-                    : orderResult.status === 'verified'
-                    ? 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20'
-                    : orderResult.status === 'paid'
-                    ? 'bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/20'
-                    : orderResult.status === 'rejected'
-                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/20'
-                    : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20'
-                }`}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-[var(--border-maroon)]/10 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--border-maroon)] animate-pulse" />
                   {orderResult.stage_name}
                 </span>
 
@@ -354,25 +342,25 @@ export const OrderStatusSearchBar: React.FC<{
 
             {/* Courier Tracking Dispatch Card (if shipped) */}
             {orderResult.tracking_number && (
-              <div className="mb-5 p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="mb-5 p-4 rounded-2xl bg-[var(--card-inner)]/80 border border-[var(--border-main)] flex flex-wrap items-center justify-between gap-3 text-[var(--text-dominant)]">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-[var(--border-maroon)] text-white flex items-center justify-center">
                     <Truck className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-sky-800 dark:text-sky-300 block">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--border-maroon)] block">
                       {orderResult.courier_name || 'Delhivery Express'} Tracking
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="font-mono text-xs font-bold text-sky-950 dark:text-sky-100">
+                      <span className="font-mono text-xs font-bold text-[var(--text-dominant)]">
                         {orderResult.tracking_number}
                       </span>
                       <button
                         onClick={() => handleCopyTracking(orderResult.tracking_number!)}
-                        className="p-1 text-sky-700 hover:text-sky-900 transition-colors"
+                        className="p-1 text-[var(--border-maroon)] hover:opacity-80 transition-colors cursor-pointer"
                         title="Copy AWB number"
                       >
-                        {copiedTracking ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedTracking ? <Check className="w-3.5 h-3.5 text-[var(--border-maroon)]" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>
@@ -382,7 +370,7 @@ export const OrderStatusSearchBar: React.FC<{
                   href={getCourierUrl(orderResult.courier_name, orderResult.tracking_number)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-medium hover:bg-sky-700 transition-colors flex items-center gap-1.5 shadow-xs"
+                  className="px-3.5 py-1.5 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-medium hover:bg-[var(--text-dominant)] transition-colors flex items-center gap-1.5 shadow-xs"
                 >
                   <span>track on courier</span>
                   <ExternalLink className="w-3 h-3" />

@@ -135,7 +135,7 @@ export const CartDrawer: React.FC = () => {
             )}
 
             {cartTotal > 2000 && (
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 text-[11px] lowercase text-center font-medium">
+              <div className="p-2.5 rounded-xl bg-[var(--border-maroon)]/10 border border-[var(--border-maroon)]/25 text-[var(--border-maroon)] text-[11px] lowercase text-center font-medium">
                 bag exceeds max order amount of ₹2,000 at once. please reduce quantity or place multiple orders.
               </div>
             )}

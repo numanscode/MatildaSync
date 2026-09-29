@@ -375,7 +375,7 @@ export const OrderStatusPanel: React.FC = () => {
                       if (error) setError(null);
                     }}
                     placeholder="order number or phone"
-                    className="w-full bg-[var(--bg-primary)]/50 border border-[var(--border-main)] rounded-xl py-2 pl-8 pr-3 text-xs font-mono uppercase text-[var(--text-dominant)] placeholder:text-[var(--text-muted)] placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-[var(--border-maroon)] transition-colors"
+                    className="w-full bg-[var(--card-inner)]/80 border border-[var(--border-main)] rounded-xl py-2.5 pl-8.5 pr-8 text-xs font-mono uppercase text-[var(--text-dominant)] placeholder:text-[var(--text-muted)] placeholder:normal-case placeholder:font-sans focus:outline-none focus:border-[var(--border-maroon)] focus:ring-1 focus:ring-[var(--border-maroon)]/25 transition-all shadow-2xs"
                   />
                   {query && (
                     <button
@@ -393,7 +393,7 @@ export const OrderStatusPanel: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading || !query.trim()}
-                  className="px-4 py-2 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-semibold lowercase tracking-wider hover:bg-[var(--text-dominant)] disabled:opacity-50 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="px-4 py-2.5 rounded-xl bg-[var(--border-maroon)] text-white text-xs font-semibold lowercase tracking-wider hover:bg-[var(--text-dominant)] disabled:opacity-50 transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {loading ? (
                     <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -430,12 +430,12 @@ export const OrderStatusPanel: React.FC = () => {
 
               {/* Error Notice with Helpful WhatsApp Support Action */}
               {error && (
-                <div className="mt-3.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs space-y-2">
+                <div className="mt-3.5 p-3 rounded-xl bg-[var(--border-maroon)]/8 border border-[var(--border-maroon)]/20 text-[var(--text-dominant)] text-xs space-y-2">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 text-[var(--border-maroon)] shrink-0 mt-0.5" />
                     <div className="flex-1 text-[11px] leading-relaxed">
-                      <p className="font-semibold">{error}</p>
-                      <p className="text-[10px] opacity-80 mt-1">
+                      <p className="font-semibold text-[var(--border-maroon)]">{error}</p>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-1">
                         If you recently placed your order, it may take 1-2 minutes to register. You can also message our studio directly.
                       </p>
                     </div>
@@ -445,7 +445,7 @@ export const OrderStatusPanel: React.FC = () => {
                       href={`https://wa.me/917051227533?text=${encodeURIComponent(`Hi Matilda team, I need help tracking my order (${query.trim() || 'order inquiry'}).`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--border-maroon)] text-white text-[11px] font-semibold hover:bg-[var(--text-dominant)] transition-colors shadow-2xs"
                     >
                       <MessageCircle className="w-3 h-3" />
                       <span>chat on whatsapp</span>
@@ -467,15 +467,7 @@ export const OrderStatusPanel: React.FC = () => {
                         {orderResult.order_number}
                       </span>
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                      orderResult.status === 'delivered'
-                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
-                        : orderResult.status === 'shipped' || orderResult.status === 'dispatched'
-                        ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/20'
-                        : orderResult.status === 'rejected'
-                        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/20'
-                        : 'bg-[var(--border-maroon)]/15 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25'
-                    }`}>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[var(--border-maroon)]/10 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25">
                       {orderResult.stage_name}
                     </span>
                   </div>
@@ -524,26 +516,26 @@ export const OrderStatusPanel: React.FC = () => {
 
                   {/* Rejection notice */}
                   {orderResult.status === 'rejected' && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 text-xs">
+                    <div className="p-3 rounded-xl bg-[var(--border-maroon)]/10 border border-[var(--border-maroon)]/25 text-[var(--border-maroon)] text-xs font-medium">
                       {orderResult.rejection_reason || 'Payment verification could not be confirmed.'}
                     </div>
                   )}
 
                   {/* Courier tracking dispatch info */}
                   {orderResult.tracking_number && (
-                    <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs flex items-center justify-between gap-2">
+                    <div className="p-2.5 rounded-xl bg-[var(--card-inner)]/80 border border-[var(--border-main)] text-xs flex items-center justify-between gap-2">
                       <div>
-                        <span className="text-[9px] uppercase tracking-wider text-sky-700 dark:text-sky-300 font-bold block">
+                        <span className="text-[9px] uppercase tracking-wider text-[var(--border-maroon)] font-bold block">
                           {orderResult.courier_name || 'Delhivery'} AWB
                         </span>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="font-mono text-xs font-semibold">{orderResult.tracking_number}</span>
+                          <span className="font-mono text-xs font-semibold text-[var(--text-dominant)]">{orderResult.tracking_number}</span>
                           <button
                             onClick={() => handleCopyTracking(orderResult.tracking_number!)}
-                            className="p-0.5 text-sky-700 hover:opacity-80 cursor-pointer"
+                            className="p-0.5 text-[var(--border-maroon)] hover:opacity-80 cursor-pointer"
                             title="Copy"
                           >
-                            {copiedTracking ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            {copiedTracking ? <Check className="w-3 h-3 text-[var(--border-maroon)]" /> : <Copy className="w-3 h-3" />}
                           </button>
                         </div>
                       </div>
@@ -551,7 +543,7 @@ export const OrderStatusPanel: React.FC = () => {
                         href={getCourierUrl(orderResult.courier_name, orderResult.tracking_number)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-2.5 py-1 rounded-lg bg-sky-600 text-white text-[10px] font-medium hover:bg-sky-700 transition-colors flex items-center gap-1 shrink-0"
+                        className="px-2.5 py-1 rounded-lg bg-[var(--border-maroon)] text-white text-[10px] font-medium hover:bg-[var(--text-dominant)] transition-colors flex items-center gap-1 shrink-0"
                       >
                         <span>courier</span>
                         <ExternalLink className="w-2.5 h-2.5" />

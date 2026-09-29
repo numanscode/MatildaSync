@@ -86,17 +86,17 @@ export const OrderTrackerOverlay: React.FC = () => {
           <div className="text-sm font-micro lowercase space-y-1">
             {statusData.status === 'pending' && (
               statusData.is_cod ? (
-                <p className="text-amber-700 font-medium">order received (cash on delivery)! your order is being processed and packed at the studio. please keep exact cash ready upon delivery.</p>
+                <p className="text-[var(--border-maroon)] font-medium">order received (cash on delivery)! your order is being processed and packed at the studio. please keep exact cash ready upon delivery.</p>
               ) : (
-                <p className="text-amber-600">your payment is being verified. you will receive your order confirmation shortly with the order number for tracking.</p>
+                <p className="text-[var(--text-dominant)] font-medium">your payment is being verified. you will receive your order confirmation shortly with the order number for tracking.</p>
               )
             )}
-            {statusData.status === 'paid' && <p className="text-green-600">order confirmed! your piece is being packed at the studio.</p>}
-            {statusData.status === 'rejected' && <p className="text-red-600">we couldn't process this order: {statusData.rejection_reason}. please message us.</p>}
-            {statusData.status === 'shipped' && <p className="text-blue-600">your piece has been shipped! tracking: {statusData.tracking_info}</p>}
+            {statusData.status === 'paid' && <p className="text-[var(--border-maroon)] font-semibold">order confirmed! your piece is being packed at the studio.</p>}
+            {statusData.status === 'rejected' && <p className="text-[var(--border-maroon)] font-medium">we couldn't process this order: {statusData.rejection_reason}. please message us.</p>}
+            {statusData.status === 'shipped' && <p className="text-[var(--border-maroon)] font-semibold">your piece has been shipped! tracking: {statusData.tracking_info}</p>}
           </div>
         ) : (
-          <p className="text-sm font-micro lowercase text-red-500">order not found.</p>
+          <p className="text-sm font-micro lowercase text-[var(--border-maroon)]">order not found.</p>
         )}
       </div>
     </div>

@@ -160,13 +160,13 @@ export const ProductModal: React.FC = () => {
                   <span className="text-[var(--border-main)]/40 text-xs">•</span>
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold lowercase tracking-tight ${
                     selectedVariant && ((selectedVariant.stock !== undefined ? selectedVariant.stock <= 0 : !selectedVariant.inStock))
-                      ? 'bg-rose-500/15 text-rose-700 border border-rose-500/30'
-                      : 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30'
+                      ? 'bg-[var(--border-main)]/20 text-[var(--text-muted)] border border-[var(--border-main)]/40 line-through'
+                      : 'bg-[var(--border-maroon)]/10 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25'
                   }`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${
                       selectedVariant && ((selectedVariant.stock !== undefined ? selectedVariant.stock <= 0 : !selectedVariant.inStock))
-                        ? 'bg-rose-500'
-                        : 'bg-emerald-500 animate-pulse'
+                        ? 'bg-[var(--border-main)]'
+                        : 'bg-[var(--border-maroon)]'
                     }`} />
                     {selectedVariant && ((selectedVariant.stock !== undefined ? selectedVariant.stock <= 0 : !selectedVariant.inStock)) ? 'out of stock' : 'in stock'}
                   </span>
@@ -230,9 +230,9 @@ export const ProductModal: React.FC = () => {
                       {selectedVariant?.name}
                       {selectedVariant && (() => {
                         const stock = typeof selectedVariant.stock === 'number' ? selectedVariant.stock : (selectedVariant.inStock ? 10 : 0);
-                        if (stock <= 0) return <span className="text-[10px] text-rose-500 font-semibold">(sold out)</span>;
-                        if (stock <= 5) return <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold animate-pulse">(only {stock} left!)</span>;
-                        return <span className="text-[10px] text-gray-500 font-normal">({stock} in stock)</span>;
+                        if (stock <= 0) return <span className="text-[10px] text-[var(--text-muted)] line-through font-semibold">(sold out)</span>;
+                        if (stock <= 5) return <span className="text-[10px] text-[var(--border-maroon)] font-bold animate-pulse">(only {stock} left!)</span>;
+                        return <span className="text-[10px] text-[var(--text-muted)] font-normal">({stock} in stock)</span>;
                       })()}
                     </span>
                   </div>

@@ -87,45 +87,39 @@ export const GradientShader: React.FC = () => {
         uniform float uMenMode;
 
         // Matilda Brand Colors
-        // Women: Warm Burgundy (#7A1228), Champagne (#FAF6F0), Amber (#B88A4E), Rose (#D4A5A5)
-        // Men: Deep Charcoal/Slate (#1E2229), Burgundy Iron (#5C1221), Muted Sand (#D4CEBF)
-
+        // Pure Beige and Velvet Maroon Tone
         void main() {
           vec2 uv = gl_FragCoord.xy / uResolution.xy;
           float aspect = uResolution.x / uResolution.y;
           vec2 p = uv;
           p.x *= aspect;
 
-          float t = uTime * 0.18;
+          float t = uTime * 0.12;
 
-          // Organic harmonic wave fields
-          float w1 = sin(p.x * 1.8 + t * 1.2) * cos(p.y * 1.5 - t * 0.9);
-          float w2 = cos(p.y * 2.2 + t * 1.4) * sin(p.x * 1.2 - t * 0.7);
-          float w3 = sin((p.x + p.y) * 1.5 + t);
+          // Gentle organic harmonic wave fields
+          float w1 = sin(p.x * 1.5 + t * 0.9) * cos(p.y * 1.2 - t * 0.7);
+          float w2 = cos(p.y * 1.8 + t * 1.1) * sin(p.x * 1.0 - t * 0.5);
+          float w3 = sin((p.x + p.y) * 1.2 + t * 0.8);
 
-          float blend1 = smoothstep(-0.6, 0.8, w1 + w3 * 0.5);
-          float blend2 = smoothstep(-0.7, 0.7, w2 - w1 * 0.4);
+          float blend1 = smoothstep(-0.5, 0.9, w1 + w3 * 0.4);
+          float blend2 = smoothstep(-0.6, 0.8, w2 - w1 * 0.3);
 
-          // Color Palettes
-          vec3 cBgWomen = vec3(0.961, 0.937, 0.902);     // #F5EFE6 warm alabaster beige
-          vec3 cMaroonWomen = vec3(0.58, 0.05, 0.16); // vivid velvet maroon
-          vec3 cAmberWomen = vec3(0.82, 0.52, 0.18);  // vivid warm amber gold
-          vec3 cRoseWomen = vec3(0.90, 0.60, 0.65);   // vivid soft rose blush
+          // Cohesive Beige & Maroon Palette
+          vec3 cBgWomen = vec3(0.898, 0.855, 0.796);      // #E5DACB natural warm antique beige
+          vec3 cMaroonWomen = vec3(0.431, 0.063, 0.145);  // #6E1025 deep velvet maroon
+          vec3 cSoftBeigeWomen = vec3(0.847, 0.796, 0.729); // #D8CBBA gentle deeper antique beige
 
-          vec3 cBgMen = vec3(0.867, 0.847, 0.812);       // #DDD8CF warm graphite sand
-          vec3 cMaroonMen = vec3(0.46, 0.07, 0.14);      // rich iron wine
-          vec3 cSlateMen = vec3(0.16, 0.20, 0.26);       // deep graphite
-          vec3 cBronzeMen = vec3(0.68, 0.48, 0.28);      // vivid bronze gold
+          vec3 cBgMen = vec3(0.820, 0.788, 0.722);        // #D1C9B8 warm stone sand
+          vec3 cMaroonMen = vec3(0.329, 0.059, 0.114);    // #540F1D deep iron maroon
+          vec3 cSoftBeigeMen = vec3(0.761, 0.729, 0.655); // #C2BAA7 deeper muted stone sand
 
           vec3 cBg = mix(cBgWomen, cBgMen, uMenMode);
           vec3 cMaroon = mix(cMaroonWomen, cMaroonMen, uMenMode);
-          vec3 cAccent = mix(cAmberWomen, cBronzeMen, uMenMode);
-          vec3 cSoft = mix(cRoseWomen, cSlateMen, uMenMode);
+          vec3 cSoft = mix(cSoftBeigeWomen, cSoftBeigeMen, uMenMode);
 
-          // Blend gradients with slightly more vivid contrast & richness
-          vec3 col = mix(cBg, cMaroon, blend1 * 0.46);
-          col = mix(col, cAccent, blend2 * 0.32);
-          col = mix(col, cSoft, (w3 * 0.5 + 0.5) * 0.18);
+          // Subtle, atmospheric ambient gradients (no jarring bright spots)
+          vec3 col = mix(cBg, cSoft, blend2 * 0.28);
+          col = mix(col, cMaroon, blend1 * 0.16);
 
           gl_FragColor = vec4(col, 1.0);
         }
@@ -216,9 +210,9 @@ export const GradientShader: React.FC = () => {
             ctx.clearRect(0, 0, w, h);
 
             const isMen = collection === 'men';
-            const baseColor = isMen ? '#DDD8CF' : '#F5EFE6';
-            const maroon = isMen ? 'rgba(92, 18, 33, 0.28)' : 'rgba(135, 18, 42, 0.32)';
-            const gold = isMen ? 'rgba(120, 95, 65, 0.24)' : 'rgba(205, 140, 65, 0.28)';
+            const baseColor = isMen ? '#D1C9B8' : '#E5DACB';
+            const maroon = isMen ? 'rgba(84, 15, 29, 0.12)' : 'rgba(110, 16, 37, 0.10)';
+            const softBeige = isMen ? 'rgba(194, 186, 167, 0.22)' : 'rgba(216, 203, 186, 0.24)';
 
             ctx.fillStyle = baseColor;
             ctx.fillRect(0, 0, w, h);
@@ -236,7 +230,7 @@ export const GradientShader: React.FC = () => {
             const x2 = w * (0.7 + 0.2 * Math.cos(t * 1.1));
             const y2 = h * (0.7 + 0.15 * Math.sin(t * 0.9));
             const g2 = ctx.createRadialGradient(x2, y2, 10, x2, y2, w * 0.55);
-            g2.addColorStop(0, gold);
+            g2.addColorStop(0, softBeige);
             g2.addColorStop(1, 'transparent');
             ctx.fillStyle = g2;
             ctx.fillRect(0, 0, w, h);

@@ -334,14 +334,14 @@ export const OrderConfirmationPage: React.FC = () => {
             </button>
           </div>
           {error && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 text-left space-y-2">
+            <div className="p-3 rounded-xl bg-[var(--border-maroon)]/10 border border-[var(--border-maroon)]/20 text-xs text-[var(--text-dominant)] text-left space-y-2">
               <p className="font-medium">{error}</p>
               <div className="pt-1 flex items-center gap-2">
                 <a
                   href={`https://wa.me/917051227533?text=${encodeURIComponent(`Hi Matilda team, I need help tracking my order (${rawOrderNum || orderIdInput || 'inquiry'}).`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--border-maroon)] text-white text-[11px] font-semibold hover:bg-[var(--text-dominant)] transition-colors shadow-2xs"
                 >
                   <MessageCircle className="w-3 h-3" />
                   <span>message studio on whatsapp</span>
@@ -452,7 +452,7 @@ export const OrderConfirmationPage: React.FC = () => {
               className="p-1.5 rounded-lg border border-[var(--border-main)]/40 hover:bg-[var(--border-maroon)] hover:text-white transition-colors text-[var(--text-dominant)]"
               title="Copy order number"
             >
-              {copiedOrder ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedOrder ? <Check className="w-3.5 h-3.5 text-[var(--border-maroon)]" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>
@@ -460,8 +460,8 @@ export const OrderConfirmationPage: React.FC = () => {
         {/* LIVE PROGRESS STEPPER */}
         <div className="pt-4 sm:pt-5">
           {order?.status === 'rejected' ? (
-            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs lowercase flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+            <div className="p-3.5 rounded-xl bg-[var(--border-maroon)]/10 border border-[var(--border-maroon)]/25 text-[var(--border-maroon)] text-xs lowercase flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[var(--border-maroon)]" />
               <div className="space-y-1">
                 <strong className="block font-bold">order status: cancelled / rejected</strong>
                 <p>{order.rejection_reason || 'Please contact our studio support on WhatsApp for assistance.'}</p>
@@ -518,28 +518,28 @@ export const OrderConfirmationPage: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-4 p-3.5 sm:p-4 rounded-xl bg-blue-50/90 border border-blue-200 text-blue-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+              className="mt-4 p-3.5 sm:p-4 rounded-xl bg-[var(--card-inner)]/80 border border-[var(--border-main)] text-[var(--text-dominant)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[var(--border-maroon)] text-white flex items-center justify-center shrink-0">
                   <Truck className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="font-bold text-xs uppercase tracking-wider text-blue-900">
+                  <span className="font-bold text-xs uppercase tracking-wider text-[var(--border-maroon)]">
                     shipped via {order?.courier_name || 'delhivery express'}
                   </span>
                   
                   {order?.tracking_number && (
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-blue-800 font-mono">
+                      <span className="text-xs text-[var(--text-dominant)] font-mono">
                         AWB: <strong>{order.tracking_number}</strong>
                       </span>
                       <button
                         onClick={handleCopyTracking}
-                        className="p-0.5 text-blue-700 hover:text-blue-900"
+                        className="p-0.5 text-[var(--border-maroon)] hover:opacity-80"
                         title="Copy Tracking Number"
                       >
-                        {copiedTracking ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedTracking ? <Check className="w-3.5 h-3.5 text-[var(--border-maroon)]" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   )}
@@ -551,7 +551,7 @@ export const OrderConfirmationPage: React.FC = () => {
                   href={getCourierTrackingUrl(order?.courier_name, order?.tracking_number)}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold lowercase hover:bg-blue-700 transition-all inline-flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-[var(--border-maroon)] text-white text-xs font-medium lowercase hover:bg-[var(--text-dominant)] transition-all inline-flex items-center justify-center gap-1.5 shadow-2xs"
                 >
                   <span>track courier</span>
                   <ExternalLink className="w-3 h-3" />
@@ -643,7 +643,7 @@ export const OrderConfirmationPage: React.FC = () => {
               </div>
 
               {promoDiscount > 0 && (
-                <div className="flex justify-between text-emerald-600 font-medium font-sans">
+                <div className="flex justify-between text-[var(--border-maroon)] font-medium font-sans">
                   <span className="font-sans">discount {promoInfo?.code ? `(${promoInfo.code})` : ''}</span>
                   <span className="font-sans">-₹{promoDiscount.toLocaleString('en-IN')}</span>
                 </div>
@@ -656,7 +656,7 @@ export const OrderConfirmationPage: React.FC = () => {
                     ₹{calculatedDeliveryFee.toLocaleString('en-IN')}
                   </span>
                 ) : (
-                  <span className="font-medium text-emerald-600 font-sans">free</span>
+                  <span className="font-semibold text-[var(--border-maroon)] font-sans">free</span>
                 )}
               </div>
 
@@ -746,12 +746,10 @@ export const OrderConfirmationPage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-[var(--text-muted)]">status</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   order?.status === 'paid' || order?.status === 'shipped' || order?.status === 'delivered'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : isCod
-                    ? 'bg-amber-100 text-amber-900'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    ? 'bg-[var(--border-maroon)] text-white shadow-2xs'
+                    : 'bg-[var(--border-maroon)]/10 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25'
                 }`}>
                   {order?.status === 'paid' || order?.status === 'shipped' || order?.status === 'delivered'
                     ? 'verified'

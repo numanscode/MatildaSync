@@ -173,11 +173,11 @@ export const ProductGrid: React.FC = () => {
               aria-pressed={inStockOnly}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold lowercase transition-all cursor-pointer border shrink-0 ${
                 inStockOnly
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                  : 'bg-[var(--card-bg)]/80 text-[var(--text-dominant)] border-[var(--border-main)]/20 hover:border-emerald-500/40'
+                  ? 'bg-[var(--border-maroon)] text-white border-[var(--border-maroon)] shadow-xs'
+                  : 'bg-[var(--card-bg)]/80 text-[var(--text-dominant)] border-[var(--border-main)]/40 hover:border-[var(--border-maroon)]'
               }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${inStockOnly ? 'bg-white' : 'bg-emerald-500 animate-pulse'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${inStockOnly ? 'bg-white' : 'bg-[var(--border-maroon)]'}`} />
               <span>in stock</span>
             </motion.button>
           </div>
@@ -218,11 +218,11 @@ export const ProductGrid: React.FC = () => {
               aria-pressed={inStockOnly}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold lowercase transition-all cursor-pointer border ${
                 inStockOnly
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                  : 'bg-[var(--card-bg)]/80 text-[var(--text-dominant)] border-[var(--border-main)]/25 hover:border-emerald-500/50 hover:bg-[var(--card-bg)]'
+                  ? 'bg-[var(--border-maroon)] text-white border-[var(--border-maroon)] shadow-sm'
+                  : 'bg-[var(--card-bg)]/80 text-[var(--text-dominant)] border-[var(--border-main)]/40 hover:border-[var(--border-maroon)] hover:bg-[var(--card-bg)]'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${inStockOnly ? 'bg-white' : 'bg-emerald-500 animate-pulse'}`} />
+              <span className={`w-2 h-2 rounded-full ${inStockOnly ? 'bg-white' : 'bg-[var(--border-maroon)]'}`} />
               <span>in stock only</span>
             </motion.button>
           </div>
@@ -461,9 +461,9 @@ const ProductCard: React.FC<ProductCardProps> = memo(({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-neutral-900/90 dark:bg-black/90 backdrop-blur-md text-amber-300 px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-semibold lowercase tracking-wide rounded-full border border-amber-400/35 shadow-xs z-10 flex items-center gap-1.5 pointer-events-none"
+            className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-[var(--card-bg)]/95 backdrop-blur-md text-[var(--border-maroon)] px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-semibold lowercase tracking-wide rounded-full border border-[var(--border-maroon)]/35 shadow-xs z-10 flex items-center gap-1.5 pointer-events-none"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--border-maroon)] animate-pulse" />
             <span>only {totalStock} left</span>
           </motion.div>
         ) : product.isFeatured ? (
@@ -511,17 +511,17 @@ const ProductCard: React.FC<ProductCardProps> = memo(({
           </p>
           <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium lowercase ${
             isOutOfStock 
-              ? 'text-rose-500 font-semibold' 
+              ? 'text-[var(--text-muted)] line-through' 
               : isLowStock 
-                ? 'text-amber-500 font-semibold' 
-                : 'text-emerald-600 dark:text-emerald-400'
+                ? 'text-[var(--border-maroon)] font-bold' 
+                : 'text-[var(--text-muted)]'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-full ${
               isOutOfStock 
-                ? 'bg-rose-500' 
+                ? 'bg-[var(--border-main)]' 
                 : isLowStock 
-                  ? 'bg-amber-400 animate-pulse' 
-                  : 'bg-emerald-500'
+                  ? 'bg-[var(--border-maroon)] animate-pulse' 
+                  : 'bg-[var(--border-maroon)]/60'
             }`} />
             {isOutOfStock ? 'out of stock' : isLowStock ? `${totalStock} left` : 'in stock'}
           </span>

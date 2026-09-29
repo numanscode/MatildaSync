@@ -555,18 +555,18 @@ export const CheckoutPage: React.FC = () => {
                   setCodNotice('cash on delivery is unavailable for now. please pay via UPI / Online payment.');
                   setError('');
                 }}
-                className="p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer relative overflow-hidden border-[var(--border-main)]/20 bg-[var(--bg-primary)]/40 hover:border-amber-600/40 hover:bg-amber-500/5 group"
+                className="p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer relative overflow-hidden border-[var(--border-main)]/20 bg-[var(--bg-primary)]/40 hover:border-[var(--border-maroon)]/40 hover:bg-[var(--border-maroon)]/5 group"
                 title="Cash on Delivery is unavailable for now"
               >
                 <div className="flex items-center justify-between w-full">
-                  <Banknote className="w-4 h-4 text-[var(--text-muted)] group-hover:text-amber-700 transition-colors" />
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25">
+                  <Banknote className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--border-maroon)] transition-colors" />
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[var(--border-maroon)]/10 text-[var(--border-maroon)] border border-[var(--border-maroon)]/25">
                     unavailable for now
                   </span>
                 </div>
                 <div>
                   <p className="font-display text-xs font-bold lowercase text-[var(--text-dominant)]">Cash on Delivery</p>
-                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium lowercase">unavailable for now</p>
+                  <p className="text-[10px] text-[var(--text-muted)] font-medium lowercase">unavailable for now</p>
                 </div>
               </button>
             </div>
@@ -576,12 +576,12 @@ export const CheckoutPage: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5"
+                className="mb-6 p-3.5 rounded-2xl bg-[var(--border-maroon)]/8 border border-[var(--border-maroon)]/20 text-xs text-[var(--text-dominant)] flex items-start gap-2.5"
               >
-                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-[var(--border-maroon)] shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <p className="font-display font-bold lowercase">cash on delivery is unavailable for now</p>
-                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed lowercase">
+                  <p className="font-display font-bold lowercase text-[var(--border-maroon)]">cash on delivery is unavailable for now</p>
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed lowercase">
                     we have paused COD orders for now. please complete your order seamlessly using the instant UPI / Online payment method above.
                   </p>
                 </div>
@@ -605,7 +605,7 @@ export const CheckoutPage: React.FC = () => {
                 )}
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between items-center text-green-700 lowercase font-medium gap-3">
+                <div className="flex justify-between items-center text-[var(--border-maroon)] font-semibold lowercase gap-3">
                   <span className="shrink-0">{activeDiscountLabel}</span>
                   <span className="shrink-0">-₹{discountAmount.toLocaleString('en-IN')}</span>
                 </div>
@@ -626,7 +626,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="space-y-4">
                 <div className={`p-4 rounded-2xl border text-xs space-y-2.5 ${
                   isCodEligible 
-                    ? 'bg-amber-500/5 border-amber-600/20 text-[var(--text-dominant)]' 
+                    ? 'bg-[var(--card-inner)]/80 border-[var(--border-main)] text-[var(--text-dominant)]' 
                     : 'bg-red-500/5 border-red-500/20 text-red-700'
                 }`}>
                   <div className="flex items-center gap-2 font-display font-bold lowercase">
@@ -683,13 +683,13 @@ export const CheckoutPage: React.FC = () => {
               <label className="block font-display text-xs font-bold lowercase mb-2 pl-1 text-[var(--text-dominant)]">promo code</label>
               
               {saleActive ? (
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-2xl px-5 py-3.5">
-                  <span className="font-micro uppercase tracking-widest text-xs text-green-700 font-bold">GLOBAL SALE APPLIED</span>
+                <div className="flex items-center justify-between bg-[var(--border-maroon)]/10 border border-[var(--border-maroon)]/25 rounded-2xl px-5 py-3.5">
+                  <span className="font-micro uppercase tracking-widest text-xs text-[var(--border-maroon)] font-bold">GLOBAL SALE APPLIED</span>
                 </div>
               ) : appliedPromo ? (
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-2xl px-5 py-3.5">
-                  <span className="font-micro uppercase tracking-widest text-xs text-green-700 font-bold">{appliedPromo.code}</span>
-                  <button type="button" onClick={removePromo} className="text-xs font-medium text-red-500 hover:text-red-700 lowercase">remove</button>
+                <div className="flex items-center justify-between bg-[var(--border-maroon)]/10 border border-[var(--border-maroon)]/25 rounded-2xl px-5 py-3.5">
+                  <span className="font-micro uppercase tracking-widest text-xs text-[var(--border-maroon)] font-bold">{appliedPromo.code}</span>
+                  <button type="button" onClick={removePromo} className="text-xs font-medium text-[var(--border-maroon)] hover:underline lowercase cursor-pointer">remove</button>
                 </div>
               ) : (
                 <div className="flex gap-2">
@@ -730,13 +730,13 @@ export const CheckoutPage: React.FC = () => {
           
           <div className="pt-2">
             {isCOD && !isCodEligible && (
-              <div className="text-amber-800 bg-amber-50 font-display font-medium text-xs lowercase p-4 rounded-2xl border border-amber-200 mb-4 text-center">
+              <div className="text-[var(--border-maroon)] bg-[var(--card-bg)] font-display font-medium text-xs lowercase p-4 rounded-2xl border border-[var(--border-maroon)]/25 mb-4 text-center">
                 cash on delivery is only available for orders up to ₹{MAX_COD_AMOUNT}. please choose UPI or reduce items.
               </div>
             )}
 
             {!isCOD && finalTotal > MAX_UPI_AMOUNT && (
-              <div className="text-amber-800 bg-amber-50 font-display font-medium text-xs lowercase p-4 rounded-2xl border border-amber-200 mb-4 text-center">
+              <div className="text-[var(--border-maroon)] bg-[var(--card-bg)] font-display font-medium text-xs lowercase p-4 rounded-2xl border border-[var(--border-maroon)]/25 mb-4 text-center">
                 the maximum order amount is ₹{MAX_UPI_AMOUNT.toLocaleString('en-IN')} at once. please reduce items in your bag or place separate orders.
               </div>
             )}

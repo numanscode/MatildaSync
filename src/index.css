@@ -30,34 +30,35 @@
     touch-action: manipulation;
   }
 
+  :root,
   :root[data-collection="women"] {
-    --bg-primary: #F5EFE6;
-    --bg-secondary: #EBE3D5;
-    --text-dominant: #2C0A10;
-    --text-primary: #3B0E17;
-    --text-muted: #6E4E55;
-    --border-main: #D9CBBF;
-    --border-maroon: #7A1228;
-    --accent-script: #8C1C33;
-    --accent-gold: #B88A4E;
-    --card-bg: #FAF5ED;
-    --card-inner: #ECE3D5;
-    --tag-bg: rgba(122, 18, 40, 0.08);
+    --bg-primary: #E5DACB;
+    --bg-secondary: #D8CBBA;
+    --text-dominant: #1F0409;
+    --text-primary: #28070F;
+    --text-muted: #53363D;
+    --border-main: #C2B29F;
+    --border-maroon: #6E1025;
+    --accent-script: #7A1228;
+    --accent-gold: #8C6530;
+    --card-bg: #ECE1D3;
+    --card-inner: #DFD3C4;
+    --tag-bg: rgba(110, 16, 37, 0.08);
   }
 
   :root[data-collection="men"] {
-    --bg-primary: #DDD8CF;
-    --bg-secondary: #CEC8BD;
-    --text-dominant: #101416;
-    --text-primary: #1C2024;
-    --text-muted: #4D535D;
-    --border-main: #BAB2A2;
-    --border-maroon: #5E1222;
-    --accent-script: #8C1C33;
-    --accent-gold: #B88A4E;
-    --card-bg: #E4DFD6;
-    --card-inner: #D4CDC0;
-    --tag-bg: rgba(94, 18, 34, 0.12);
+    --bg-primary: #D1C9B8;
+    --bg-secondary: #C2BAA7;
+    --text-dominant: #0C0E10;
+    --text-primary: #14171A;
+    --text-muted: #383D45;
+    --border-main: #A89E8C;
+    --border-maroon: #540F1D;
+    --accent-script: #7A1228;
+    --accent-gold: #8C6530;
+    --card-bg: #D9D2C3;
+    --card-inner: #C8C0AF;
+    --tag-bg: rgba(84, 15, 29, 0.12);
   }
 
   /* Smooth transition for theme variable color updates across layout containers */
